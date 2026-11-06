@@ -109,8 +109,9 @@ export function App() {
     then?: ActivityItem,
     trainingLevel?: number
   ) => {
+    const resolvedMode = mode || activeTimerMode || settings.defaultMode;
     setActiveDurationSec(durationSec);
-    setActiveTimerMode(mode || settings.defaultMode);
+    setActiveTimerMode(resolvedMode);
     setActiveFirstActivity(first);
     setActiveThenActivity(then);
     setActiveTrainingLevel(trainingLevel);
@@ -130,6 +131,7 @@ export function App() {
   // Handle Save Settings from Parent Dashboard
   const handleSaveSettings = async (newSettings: ParentSettings) => {
     setSettings(newSettings);
+    setActiveTimerMode(newSettings.defaultMode);
     await saveSettings(newSettings);
   };
 
@@ -183,6 +185,7 @@ export function App() {
       {currentView === 'home' && (
         <HomeScreen
           settings={settings}
+          currentMode={activeTimerMode}
           totalStars={totalStars}
           onSelectCharacter={handleSelectCharacter}
           onStartSitting={() => setCurrentView('presets')}
@@ -192,7 +195,7 @@ export function App() {
         />
       )}
 
-      {/* 2. DURATION PRESET PICKER */}
+      {/* 2. DURATION PRESET PICKER & ANIMATION CHOOSER */}
       {currentView === 'presets' && (
         <div className="w-full max-w-4xl mx-auto p-4 sm:p-6 flex flex-col items-center animate-fade-in">
           <div className="w-full flex items-center justify-between mb-4">
@@ -204,7 +207,7 @@ export function App() {
               <span>Garden Home</span>
             </button>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight text-center">
-              Choose Sitting Time 🌸
+              Start Sitting 🌸
             </h1>
             <div className="w-20" />
           </div>
@@ -222,8 +225,19 @@ export function App() {
           <PresetPicker
             availablePresets={settings.availablePresets}
             selectedSec={activeDurationSec}
-            onSelect={(sec) => setActiveDurationSec(sec)}
-            onStart={(sec) => launchTimer(sec, settings.defaultMode)}
+            selectedMode={activeTimerMode}
+            characterId={settings.character}
+            onSelectSec={(sec) => setActiveDurationSec(sec)}
+            onSelectMode={(mode) => {
+              setActiveTimerMode(mode);
+              const updated = { ...settings, defaultMode: mode };
+              setSettings(updated);
+              saveSettings(updated);
+            }}
+            onStart={(sec, mode) => {
+              setActiveTimerMode(mode);
+              launchTimer(sec, mode);
+            }}
           />
         </div>
       )}
@@ -247,9 +261,11 @@ export function App() {
         <FirstThenScreen
           activities={activities}
           defaultDurationSec={settings.defaultDurationSec}
+          currentMode={activeTimerMode}
           onSaveNewActivity={handleSaveNewActivity}
-          onStartTimer={(first, then, durationSec) => {
-            launchTimer(durationSec, settings.defaultMode, first, then);
+          onStartTimer={(first, then, durationSec, mode) => {
+            setActiveTimerMode(mode);
+            launchTimer(durationSec, mode, first, then);
           }}
           onBack={() => setCurrentView('home')}
         />
@@ -260,9 +276,11 @@ export function App() {
         <GradualTrainingScreen
           levels={trainingLevels}
           characterId={settings.character}
+          currentMode={activeTimerMode}
           onUpdateLevels={handleUpdateLevels}
-          onStartLevel={(lvl) => {
-            launchTimer(lvl.durationSec, settings.defaultMode, undefined, undefined, lvl.level);
+          onStartLevel={(lvl, mode) => {
+            setActiveTimerMode(mode);
+            launchTimer(lvl.durationSec, mode, undefined, undefined, lvl.level);
           }}
           onBack={() => setCurrentView('home')}
         />

@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ActivityItem } from '../../types';
+import { ActivityItem, TimerMode } from '../../types';
 import { AddCustomActivityModal } from './AddCustomActivityModal';
 import { ArrowRight, ArrowDown, Plus, Play, ChevronLeft } from 'lucide-react';
 
 interface FirstThenScreenProps {
   activities: ActivityItem[];
   defaultDurationSec: number;
+  currentMode: TimerMode;
   onSaveNewActivity: (activity: ActivityItem) => void;
-  onStartTimer: (first: ActivityItem, then: ActivityItem, durationSec: number) => void;
+  onStartTimer: (first: ActivityItem, then: ActivityItem, durationSec: number, mode: TimerMode) => void;
   onBack: () => void;
 }
 
@@ -34,6 +35,7 @@ export const ACTIVITY_ICONS: { [key: string]: string } = {
 export const FirstThenScreen: React.FC<FirstThenScreenProps> = ({
   activities,
   defaultDurationSec,
+  currentMode,
   onSaveNewActivity,
   onStartTimer,
   onBack,
@@ -44,13 +46,23 @@ export const FirstThenScreen: React.FC<FirstThenScreenProps> = ({
   const [selectedFirst, setSelectedFirst] = useState<ActivityItem>(firstOptions[0]);
   const [selectedThen, setSelectedThen] = useState<ActivityItem>(thenOptions[0]);
   const [selectedDuration, setSelectedDuration] = useState<number>(defaultDurationSec);
+  const [selectedMode, setSelectedMode] = useState<TimerMode>(currentMode);
   const [activePicker, setActivePicker] = useState<'first' | 'then' | null>(null);
   const [isAddCustomOpen, setIsAddCustomOpen] = useState(false);
 
   const durationPresets = [30, 60, 120, 180, 300, 600];
 
+  const timerModesList: { id: TimerMode; label: string; icon: string }[] = [
+    { id: 'garden', label: 'Flower', icon: '🌸' },
+    { id: 'rainbow', label: 'Rainbow', icon: '🌈' },
+    { id: 'journey', label: 'Journey', icon: '🏡' },
+    { id: 'balloon', label: 'Balloon', icon: '🎈' },
+    { id: 'butterfly', label: 'Butterfly', icon: '🦋' },
+    { id: 'sunset', label: 'Sunset', icon: '🌙' },
+  ];
+
   const handleLaunch = () => {
-    onStartTimer(selectedFirst, selectedThen, selectedDuration);
+    onStartTimer(selectedFirst, selectedThen, selectedDuration, selectedMode);
   };
 
   return (
@@ -169,6 +181,29 @@ export const FirstThenScreen: React.FC<FirstThenScreenProps> = ({
               }`}
             >
               {sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)}m`}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Animation Mode Selector for First-Then */}
+      <div className="w-full max-w-md bg-white/85 rounded-3xl p-4 shadow-sm border border-slate-200 my-2 flex flex-col items-center">
+        <span className="font-extrabold text-slate-700 text-sm mb-2">
+          Animation to Watch While Sitting:
+        </span>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 w-full">
+          {timerModesList.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setSelectedMode(m.id)}
+              className={`p-2 rounded-2xl flex flex-col items-center text-center border-2 transition-all ${
+                selectedMode === m.id
+                  ? 'bg-pink-100 border-pink-400 font-black text-pink-900 shadow-sm scale-105'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <span className="text-2xl">{m.icon}</span>
+              <span className="text-[10px] font-bold mt-0.5">{m.label}</span>
             </button>
           ))}
         </div>

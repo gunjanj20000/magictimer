@@ -1,25 +1,28 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { TrainingLevel, CharacterId } from '../../types';
+import { TrainingLevel, CharacterId, TimerMode } from '../../types';
 import { CharacterAvatar } from '../characters/CharacterAvatar';
 import { ChevronLeft, Play, Star, CheckCircle, Lock, Edit3 } from 'lucide-react';
 
 interface GradualTrainingScreenProps {
   levels: TrainingLevel[];
   characterId: CharacterId;
+  currentMode: TimerMode;
   onUpdateLevels: (levels: TrainingLevel[]) => void;
-  onStartLevel: (level: TrainingLevel) => void;
+  onStartLevel: (level: TrainingLevel, mode: TimerMode) => void;
   onBack: () => void;
 }
 
 export const GradualTrainingScreen: React.FC<GradualTrainingScreenProps> = ({
   levels,
   characterId,
+  currentMode,
   onUpdateLevels,
   onStartLevel,
   onBack,
 }) => {
   const [selectedLevelNum, setSelectedLevelNum] = useState<number>(1);
+  const [selectedMode, setSelectedMode] = useState<TimerMode>(currentMode);
   const [isEditing, setIsEditing] = useState<number | null>(null);
   const [editMinutes, setEditMinutes] = useState<number>(1);
 
@@ -100,11 +103,37 @@ export const GradualTrainingScreen: React.FC<GradualTrainingScreenProps> = ({
           </div>
         </div>
 
+        {/* Animation mode quick chips */}
+        <div className="flex items-center gap-1.5 mt-3 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+          <span className="text-[11px] font-bold text-amber-900 mr-1">Animation:</span>
+          {[
+            { id: 'journey' as TimerMode, icon: '🏡', label: 'Journey' },
+            { id: 'garden' as TimerMode, icon: '🌸', label: 'Flower' },
+            { id: 'rainbow' as TimerMode, icon: '🌈', label: 'Rainbow' },
+            { id: 'balloon' as TimerMode, icon: '🎈', label: 'Balloon' },
+            { id: 'butterfly' as TimerMode, icon: '🦋', label: 'Butterfly' },
+            { id: 'sunset' as TimerMode, icon: '🌙', label: 'Sunset' },
+          ].map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setSelectedMode(m.id)}
+              className={`px-2 py-0.5 rounded-full text-xs font-bold transition-all ${
+                selectedMode === m.id
+                  ? 'bg-amber-400 text-amber-950 shadow-sm scale-105'
+                  : 'bg-white text-slate-500 hover:bg-amber-100'
+              }`}
+              title={m.label}
+            >
+              <span>{m.icon}</span>
+            </button>
+          ))}
+        </div>
+
         {/* Start Button */}
         <motion.button
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.96 }}
-          onClick={() => onStartLevel(selectedLevel)}
+          onClick={() => onStartLevel(selectedLevel, selectedMode)}
           className="w-full mt-4 py-3.5 px-6 rounded-3xl bg-gradient-to-r from-emerald-400 to-green-500 text-white font-black text-xl shadow-lg shadow-green-200 border-2 border-white flex items-center justify-center gap-3 transition-transform"
         >
           <Play className="w-7 h-7 fill-current" />

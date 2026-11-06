@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Sparkles } from 'lucide-react';
+import { TimerMode, CharacterId } from '../../types';
+import { CHARACTER_META } from '../characters/CharacterAvatar';
+import { Play, Sparkles, Check } from 'lucide-react';
 
 interface PresetPickerProps {
   availablePresets: number[]; // in seconds
   selectedSec: number;
-  onSelect: (sec: number) => void;
-  onStart: (sec: number) => void;
+  selectedMode: TimerMode;
+  characterId: CharacterId;
+  onSelectSec: (sec: number) => void;
+  onSelectMode: (mode: TimerMode) => void;
+  onStart: (sec: number, mode: TimerMode) => void;
   className?: string;
 }
 
@@ -33,69 +38,152 @@ function formatMinutes(sec: number): string {
 export const PresetPicker: React.FC<PresetPickerProps> = ({
   availablePresets,
   selectedSec,
-  onSelect,
+  selectedMode,
+  characterId,
+  onSelectSec,
+  onSelectMode,
   onStart,
   className = '',
 }) => {
   const [customMinutes, setCustomMinutes] = useState(Math.round(selectedSec / 60) || 2);
   const [showCustom, setShowCustom] = useState(false);
 
+  const characterName = CHARACTER_META.find((c) => c.id === characterId)?.name.split(' ')[0] || 'Bunny';
+
+  const timerModesInfo: {
+    id: TimerMode;
+    title: string;
+    subtitle: string;
+    icon: string;
+    color: string;
+  }[] = [
+    { id: 'garden', title: 'Magic Flower', subtitle: 'Grows & blooms', icon: '🌸', color: 'from-pink-300 to-rose-400' },
+    { id: 'rainbow', title: 'Rainbow Arch', subtitle: 'Colors fill up', icon: '🌈', color: 'from-amber-300 to-orange-400' },
+    { id: 'journey', title: `${characterName} Journey`, subtitle: 'Walks to cozy home', icon: '🏡', color: 'from-emerald-300 to-teal-400' },
+    { id: 'balloon', title: 'Balloon Float', subtitle: 'Gently ascends', icon: '🎈', color: 'from-sky-300 to-blue-400' },
+    { id: 'butterfly', title: 'Butterfly Hop', subtitle: 'Flutters to flowers', icon: '🦋', color: 'from-purple-300 to-indigo-400' },
+    { id: 'sunset', title: 'Sunset to Moon', subtitle: 'Day turns to night', icon: '🌙', color: 'from-indigo-300 to-violet-400' },
+  ];
+
   return (
-    <div className={`w-full max-w-2xl mx-auto flex flex-col items-center select-none ${className}`}>
-      {/* Preset cards grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 gap-3 sm:gap-4 w-full p-2">
-        {availablePresets.map((sec) => {
-          const isSelected = selectedSec === sec && !showCustom;
-          const visual = PRESET_VISUALS[sec] || {
-            symbol: '🌸',
-            title: formatMinutes(sec),
-            color: 'from-teal-300 to-emerald-400',
-            desc: formatMinutes(sec),
-          };
+    <div className={`w-full max-w-3xl mx-auto flex flex-col items-center select-none ${className}`}>
+      {/* 1. VISUAL ANIMATION SELECTOR */}
+      <div className="w-full mb-6">
+        <div className="text-center mb-3">
+          <span className="px-4 py-1 rounded-full bg-pink-100 text-pink-700 font-black text-xs uppercase tracking-wider">
+            Step 1: Choose Your Animation
+          </span>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 mt-1">
+            What would you like to watch grow? ✨
+          </h2>
+        </div>
 
-          return (
-            <motion.button
-              key={sec}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setShowCustom(false);
-                onSelect(sec);
-              }}
-              className={`relative rounded-3xl p-3 sm:p-4 text-center transition-all flex flex-col items-center justify-between border-4 ${
-                isSelected
-                  ? 'bg-white shadow-xl ring-4 ring-pink-400/50 border-pink-400 scale-105'
-                  : 'bg-white/80 hover:bg-white border-transparent hover:border-pink-200 shadow-md'
-              }`}
-            >
-              {/* Symbol bubble */}
-              <div
-                className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr ${visual.color} flex items-center justify-center text-3xl sm:text-4xl shadow-md mb-2`}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 w-full px-2">
+          {timerModesInfo.map((m) => {
+            const isSelected = selectedMode === m.id;
+
+            return (
+              <motion.button
+                key={m.id}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onSelectMode(m.id)}
+                className={`relative rounded-3xl p-3 sm:p-4 text-center transition-all flex flex-col items-center justify-between border-4 ${
+                  isSelected
+                    ? 'bg-white shadow-xl ring-4 ring-pink-400/50 border-pink-500 scale-105 z-10'
+                    : 'bg-white/80 hover:bg-white border-transparent hover:border-pink-200 shadow-md'
+                }`}
               >
-                <span>{visual.symbol}</span>
-              </div>
-
-              {/* Kid-friendly title */}
-              <span className="font-extrabold text-slate-700 text-sm sm:text-base leading-tight">
-                {visual.title}
-              </span>
-
-              {/* Subtitle with duration badge */}
-              <span className="mt-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-bold text-xs">
-                {formatMinutes(sec)}
-              </span>
-
-              {isSelected && (
-                <div className="absolute -top-2 -right-2 bg-pink-500 text-white rounded-full p-1 shadow-md">
-                  <Sparkles className="w-4 h-4" />
+                {/* Icon bubble */}
+                <div
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr ${m.color} flex items-center justify-center text-3xl sm:text-4xl shadow-md mb-2`}
+                >
+                  <span>{m.icon}</span>
                 </div>
-              )}
-            </motion.button>
-          );
-        })}
+
+                <span className="font-black text-slate-800 text-sm sm:text-base leading-tight">
+                  {m.title}
+                </span>
+
+                <span className="text-[11px] font-bold text-slate-500 mt-0.5">
+                  {m.subtitle}
+                </span>
+
+                {isSelected && (
+                  <div className="absolute -top-2 -right-2 bg-pink-500 text-white rounded-full p-1 shadow-md flex items-center justify-center">
+                    <Check className="w-4 h-4 stroke-[3]" />
+                  </div>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 2. DURATION PRESET PICKER */}
+      <div className="w-full mb-4">
+        <div className="text-center mb-3">
+          <span className="px-4 py-1 rounded-full bg-amber-100 text-amber-800 font-black text-xs uppercase tracking-wider">
+            Step 2: Choose Sitting Time
+          </span>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 mt-1">
+            How long will we sit? ⏱️
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 gap-3 sm:gap-4 w-full p-2">
+          {availablePresets.map((sec) => {
+            const isSelected = selectedSec === sec && !showCustom;
+            const visual = PRESET_VISUALS[sec] || {
+              symbol: '🌸',
+              title: formatMinutes(sec),
+              color: 'from-teal-300 to-emerald-400',
+              desc: formatMinutes(sec),
+            };
+
+            return (
+              <motion.button
+                key={sec}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setShowCustom(false);
+                  onSelectSec(sec);
+                }}
+                className={`relative rounded-3xl p-3 sm:p-4 text-center transition-all flex flex-col items-center justify-between border-4 ${
+                  isSelected
+                    ? 'bg-white shadow-xl ring-4 ring-amber-400/50 border-amber-400 scale-105'
+                    : 'bg-white/80 hover:bg-white border-transparent hover:border-amber-200 shadow-md'
+                }`}
+              >
+                {/* Symbol bubble */}
+                <div
+                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr ${visual.color} flex items-center justify-center text-2xl sm:text-3xl shadow-md mb-2`}
+                >
+                  <span>{visual.symbol}</span>
+                </div>
+
+                {/* Kid-friendly title */}
+                <span className="font-extrabold text-slate-700 text-xs sm:text-sm leading-tight">
+                  {visual.title}
+                </span>
+
+                {/* Subtitle with duration badge */}
+                <span className="mt-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-bold text-xs">
+                  {formatMinutes(sec)}
+                </span>
+
+                {isSelected && (
+                  <div className="absolute -top-2 -right-2 bg-amber-500 text-white rounded-full p-1 shadow-md">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Custom Duration Toggle & Slider */}
-      <div className="w-full mt-4 px-3 flex flex-col items-center">
+      <div className="w-full mt-2 px-3 flex flex-col items-center">
         {!showCustom ? (
           <button
             onClick={() => setShowCustom(true)}
@@ -116,7 +204,7 @@ export const PresetPicker: React.FC<PresetPickerProps> = ({
               onChange={(e) => {
                 const val = Number(e.target.value);
                 setCustomMinutes(val);
-                onSelect(val * 60);
+                onSelectSec(val * 60);
               }}
               className="w-full h-3 bg-pink-200 rounded-lg appearance-none cursor-pointer accent-pink-500"
             />
@@ -128,8 +216,8 @@ export const PresetPicker: React.FC<PresetPickerProps> = ({
       <motion.button
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.96 }}
-        onClick={() => onStart(selectedSec)}
-        className="w-full max-w-sm mt-5 py-4 px-6 rounded-3xl bg-gradient-to-r from-emerald-400 via-teal-400 to-green-500 text-white font-black text-xl sm:text-2xl shadow-xl shadow-green-200/80 border-4 border-white flex items-center justify-center gap-3 transition-transform"
+        onClick={() => onStart(selectedSec, selectedMode)}
+        className="w-full max-w-md mt-6 py-4 px-6 rounded-3xl bg-gradient-to-r from-emerald-400 via-teal-400 to-green-500 text-white font-black text-xl sm:text-2xl shadow-xl shadow-green-200/80 border-4 border-white flex items-center justify-center gap-3 transition-transform"
       >
         <Play className="w-8 h-8 fill-current" />
         <span>Start Sitting</span>

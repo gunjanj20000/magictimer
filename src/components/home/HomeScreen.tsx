@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CharacterId, ParentSettings } from '../../types';
+import { CharacterId, ParentSettings, TimerMode } from '../../types';
 import { CharacterAvatar, CHARACTER_META } from '../characters/CharacterAvatar';
 import { Sparkles, Star, Settings } from 'lucide-react';
 
 interface HomeScreenProps {
   settings: ParentSettings;
+  currentMode: TimerMode;
   totalStars: number;
   onSelectCharacter: (id: CharacterId) => void;
   onStartSitting: () => void;
@@ -16,6 +17,7 @@ interface HomeScreenProps {
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
   settings,
+  currentMode,
   totalStars,
   onSelectCharacter,
   onStartSitting,
@@ -24,6 +26,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenSettings,
 }) => {
   const [showCharPicker, setShowCharPicker] = useState(false);
+
+  const characterName = CHARACTER_META.find((c) => c.id === settings.character)?.name.split(' ')[0] || 'Bunny';
+
+  const modeDescriptions: { [key in TimerMode]: { icon: string; subtitle: string } } = {
+    garden: { icon: '🌸', subtitle: 'Watch Flower Grow' },
+    rainbow: { icon: '🌈', subtitle: 'Watch Rainbow Fill' },
+    journey: { icon: '🏡', subtitle: `${characterName}'s Journey` },
+    balloon: { icon: '🎈', subtitle: 'Float Balloon' },
+    butterfly: { icon: '🦋', subtitle: 'Butterfly Hop' },
+    sunset: { icon: '🌙', subtitle: 'Gentle Sunset' },
+  };
+
+  const activeModeVisual = modeDescriptions[currentMode] || modeDescriptions.garden;
 
   return (
     <div className="relative w-full h-full min-h-screen flex flex-col justify-between p-4 sm:p-6 max-w-5xl mx-auto select-none">
@@ -114,13 +129,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           className="col-span-1 rounded-4xl p-4 sm:p-5 bg-gradient-to-tr from-emerald-400 to-green-500 text-white shadow-xl shadow-green-200 border-4 border-white flex flex-col items-center justify-between text-center transition-all"
         >
           <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-3xl bg-white/25 flex items-center justify-center text-4xl mb-2 shadow-inner">
-            <span>🌸</span>
+            <span>{activeModeVisual.icon}</span>
           </div>
           <span className="font-black text-base sm:text-xl leading-tight">
             START SITTING
           </span>
           <span className="text-xs font-bold text-green-100 mt-0.5">
-            Watch Flower Grow
+            {activeModeVisual.subtitle}
           </span>
         </motion.button>
 
