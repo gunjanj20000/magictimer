@@ -1,10 +1,16 @@
-const CACHE_NAME = 'magic-garden-v1';
+const CACHE_NAME = 'magic-garden-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.svg'
 ];
+
+self.addEventListener('message', (event) => {
+  if (event.data && (event.data.action === 'SKIP_WAITING' || event.data.type === 'SKIP_WAITING')) {
+    self.skipWaiting();
+  }
+});
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

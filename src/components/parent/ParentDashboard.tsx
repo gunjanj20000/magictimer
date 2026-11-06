@@ -3,7 +3,7 @@ import { ParentSettings, SessionRecord } from '../../types';
 import { TimerModePreview } from './TimerModePreview';
 import { SessionHistoryView } from './SessionHistoryView';
 import { CHARACTER_META } from '../characters/CharacterAvatar';
-import { ChevronLeft, Sliders, User, ShieldCheck, History, Check } from 'lucide-react';
+import { ChevronLeft, Sliders, User, ShieldCheck, History, Check, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 interface ParentDashboardProps {
   settings: ParentSettings;
@@ -23,6 +23,43 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [settings, setSettings] = useState<ParentSettings>(initialSettings);
   const [activeTab, setActiveTab] = useState<'timer' | 'character' | 'security' | 'history'>('timer');
   const [savedToast, setSavedToast] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState<string | null>(null);
+
+  const handleUpdateCode = async () => {
+    setIsUpdating(true);
+    setUpdateMessage('Checking for latest code...');
+
+    try {
+      // 1. Check Service Worker registrations and trigger update
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.update();
+          if (reg.waiting) {
+            reg.waiting.postMessage({ action: 'SKIP_WAITING' });
+          }
+        }
+      }
+
+      // 2. Clear old cached assets so browser fetches freshest code
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map((name) => caches.delete(name)));
+      }
+
+      setUpdateMessage('Updated! Reloading latest code...');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (err) {
+      console.warn('Code update check error:', err);
+      setUpdateMessage('Reloading application...');
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+    }
+  };
 
   const updateSetting = <K extends keyof ParentSettings>(key: K, value: ParentSettings[K]) => {
     const updated = { ...settings, [key]: value };
@@ -63,13 +100,23 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
           Parent Settings 🌻
         </h1>
 
-        {/* Auto-save notification badge */}
-        <div className="w-24 flex justify-end">
+        {/* Right Header: Update Code & Auto-save notification badge */}
+        <div className="flex items-center gap-2">
           {savedToast && (
             <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 animate-fade-in">
               <Check className="w-3.5 h-3.5" /> Saved
             </span>
           )}
+
+          <button
+            onClick={handleUpdateCode}
+            disabled={isUpdating}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-extrabold text-xs shadow-sm border border-amber-300 transition-colors disabled:opacity-60"
+            title="Check and update application code"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-amber-700 ${isUpdating ? 'animate-spin' : ''}`} />
+            <span>{isUpdating ? 'Updating...' : 'Update Code'}</span>
+          </button>
         </div>
       </div>
 
@@ -411,6 +458,36 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 onChange={(e) => updateSetting('wakeLockEnabled', e.target.checked)}
                 className="w-5 h-5 accent-amber-500 cursor-pointer"
               />
+            </div>
+
+            {/* App Code & Version Updates */}
+            <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-extrabold text-slate-800 text-sm block">
+                    App Code & Updates (PWA v1.2.0)
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    Fetch latest code changes, clear cached bundle, and reload app
+                  </span>
+                </div>
+              </div>
+
+              {updateMessage && (
+                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-amber-600" />
+                  <span>{updateMessage}</span>
+                </div>
+              )}
+
+              <button
+                onClick={handleUpdateCode}
+                disabled={isUpdating}
+                className="mt-1 w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-amber-950 font-black text-sm shadow-md border-2 border-white flex items-center justify-center gap-2 transition-transform active:scale-98 disabled:opacity-60"
+              >
+                <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
+                <span>{isUpdating ? 'Checking & Updating Code...' : 'Update Application Code Now'}</span>
+              </button>
             </div>
           </div>
         )}
