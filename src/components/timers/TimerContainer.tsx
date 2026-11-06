@@ -14,6 +14,7 @@ import { BalloonTimer } from './BalloonTimer';
 import { ButterflyTimer } from './ButterflyTimer';
 import { SunsetTimer } from './SunsetTimer';
 import { VisualCheckpoints } from './VisualCheckpoints';
+import { TimerWatch } from './TimerWatch';
 import { VisualBreakModal } from '../ui/VisualBreakModal';
 import { CelebrationModal } from '../ui/CelebrationModal';
 import { ParentLockModal } from '../ui/ParentLockModal';
@@ -276,22 +277,22 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
 
   return (
     <div className="fixed inset-0 z-40 bg-gradient-to-b from-[#E0F2FE] via-[#F0FDF4] to-[#FEFCE8] flex flex-col justify-between overflow-hidden select-none">
-      {/* Top Header Bar: First Activity card (if any) + Checkpoints + Visual Break */}
-      <div className="relative z-20 w-full p-3 sm:p-5 flex items-center justify-between gap-2 max-w-4xl mx-auto">
+      {/* Top Header Bar: First Activity card (if any) + Checkpoints */}
+      <div className="relative z-20 w-full p-3 sm:p-5 flex items-center justify-between gap-2 max-w-4xl mx-auto pr-24 sm:pr-28">
         {/* FIRST Activity visual badge */}
         {firstActivity ? (
-          <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-sm border border-pink-100">
-            <span className="text-xs font-black uppercase text-pink-500 tracking-wider">
+          <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-sm border border-pink-100">
+            <span className="text-[10px] sm:text-xs font-black uppercase text-pink-500 tracking-wider">
               First
             </span>
-            <div className="w-8 h-8 rounded-xl bg-pink-100 flex items-center justify-center overflow-hidden">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-pink-100 flex items-center justify-center overflow-hidden">
               {firstActivity.customImageDataUrl ? (
                 <img src={firstActivity.customImageDataUrl} alt={firstActivity.title} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-base">🪑</span>
+                <span className="text-sm sm:text-base">🪑</span>
               )}
             </div>
-            <span className="text-sm font-bold text-slate-700 hidden sm:inline">
+            <span className="text-xs sm:text-sm font-bold text-slate-700 hidden sm:inline">
               {firstActivity.title}
             </span>
           </div>
@@ -300,20 +301,34 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
         )}
 
         {/* Visual Checkpoints Indicator */}
-        <VisualCheckpoints progress={progress} className="scale-90 sm:scale-100" />
+        <VisualCheckpoints progress={progress} className="scale-75 sm:scale-95 origin-center" />
 
         {/* Break Button (if enabled) */}
-        {settings.allowVisualBreak && (
+        {settings.allowVisualBreak ? (
           <motion.button
             whileTap={{ scale: 0.92 }}
             onClick={handleTriggerBreak}
-            className="flex items-center gap-1.5 bg-white/80 hover:bg-white backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-sm border border-amber-200 text-amber-700 font-bold text-xs sm:text-sm active:bg-amber-50"
+            className="flex items-center gap-1.5 bg-white/80 hover:bg-white backdrop-blur-md px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-2xl shadow-sm border border-amber-200 text-amber-700 font-bold text-xs active:bg-amber-50"
             title="Take a gentle break"
           >
-            <Coffee className="w-4 h-4 text-amber-500" />
-            <span className="hidden xs:inline">Need Break</span>
+            <Coffee className="w-3.5 h-3.5 text-amber-500" />
+            <span className="hidden xs:inline">Break</span>
           </motion.button>
+        ) : (
+          <div />
         )}
+      </div>
+
+      {/* Top-Right Visual Timer Watch - Visible to kid on EVERY animation page */}
+      <div className="absolute top-2.5 right-2.5 sm:top-4 sm:right-6 z-30 pointer-events-auto">
+        <TimerWatch
+          progress={progress}
+          elapsedMs={elapsedMs}
+          totalDurationMs={totalDurationMs}
+          isPaused={isPaused}
+          direction={settings.direction}
+          className="scale-90 sm:scale-100 origin-top-right"
+        />
       </div>
 
       {/* Main Central Visualization Screen */}

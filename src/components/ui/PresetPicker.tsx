@@ -67,66 +67,14 @@ export const PresetPicker: React.FC<PresetPickerProps> = ({
 
   return (
     <div className={`w-full max-w-3xl mx-auto flex flex-col items-center select-none ${className}`}>
-      {/* 1. VISUAL ANIMATION SELECTOR */}
+      {/* STEP 1: FIRST SELECT TIME */}
       <div className="w-full mb-6">
         <div className="text-center mb-3">
-          <span className="px-4 py-1 rounded-full bg-pink-100 text-pink-700 font-black text-xs uppercase tracking-wider">
-            Step 1: Choose Your Animation
-          </span>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-800 mt-1">
-            What would you like to watch grow? ✨
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 w-full px-2">
-          {timerModesInfo.map((m) => {
-            const isSelected = selectedMode === m.id;
-
-            return (
-              <motion.button
-                key={m.id}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => onSelectMode(m.id)}
-                className={`relative rounded-3xl p-3 sm:p-4 text-center transition-all flex flex-col items-center justify-between border-4 ${
-                  isSelected
-                    ? 'bg-white shadow-xl ring-4 ring-pink-400/50 border-pink-500 scale-105 z-10'
-                    : 'bg-white/80 hover:bg-white border-transparent hover:border-pink-200 shadow-md'
-                }`}
-              >
-                {/* Icon bubble */}
-                <div
-                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr ${m.color} flex items-center justify-center text-3xl sm:text-4xl shadow-md mb-2`}
-                >
-                  <span>{m.icon}</span>
-                </div>
-
-                <span className="font-black text-slate-800 text-sm sm:text-base leading-tight">
-                  {m.title}
-                </span>
-
-                <span className="text-[11px] font-bold text-slate-500 mt-0.5">
-                  {m.subtitle}
-                </span>
-
-                {isSelected && (
-                  <div className="absolute -top-2 -right-2 bg-pink-500 text-white rounded-full p-1 shadow-md flex items-center justify-center">
-                    <Check className="w-4 h-4 stroke-[3]" />
-                  </div>
-                )}
-              </motion.button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 2. DURATION PRESET PICKER */}
-      <div className="w-full mb-4">
-        <div className="text-center mb-3">
           <span className="px-4 py-1 rounded-full bg-amber-100 text-amber-800 font-black text-xs uppercase tracking-wider">
-            Step 2: Choose Sitting Time
+            Step 1: Select Sitting Time ⏱️
           </span>
           <h2 className="text-xl sm:text-2xl font-black text-slate-800 mt-1">
-            How long will we sit? ⏱️
+            How long will we sit?
           </h2>
         </div>
 
@@ -180,47 +128,99 @@ export const PresetPicker: React.FC<PresetPickerProps> = ({
             );
           })}
         </div>
+
+        {/* Custom Duration Toggle & Slider */}
+        <div className="w-full mt-2 px-3 flex flex-col items-center">
+          {!showCustom ? (
+            <button
+              onClick={() => setShowCustom(true)}
+              className="text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-700 underline decoration-dotted"
+            >
+              Choose Custom Sitting Minutes
+            </button>
+          ) : (
+            <div className="w-full max-w-sm bg-white/90 rounded-2xl p-4 shadow-sm border border-pink-100 flex flex-col items-center">
+              <span className="font-bold text-slate-700 text-sm mb-2">
+                Custom Time: {customMinutes} Minutes
+              </span>
+              <input
+                type="range"
+                min="1"
+                max="60"
+                value={customMinutes}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setCustomMinutes(val);
+                  onSelectSec(val * 60);
+                }}
+                className="w-full h-3 bg-pink-200 rounded-lg appearance-none cursor-pointer accent-pink-500"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Custom Duration Toggle & Slider */}
-      <div className="w-full mt-2 px-3 flex flex-col items-center">
-        {!showCustom ? (
-          <button
-            onClick={() => setShowCustom(true)}
-            className="text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-700 underline decoration-dotted"
-          >
-            Choose Custom Sitting Minutes
-          </button>
-        ) : (
-          <div className="w-full max-w-sm bg-white/90 rounded-2xl p-4 shadow-sm border border-pink-100 flex flex-col items-center">
-            <span className="font-bold text-slate-700 text-sm mb-2">
-              Custom Time: {customMinutes} Minutes
-            </span>
-            <input
-              type="range"
-              min="1"
-              max="60"
-              value={customMinutes}
-              onChange={(e) => {
-                const val = Number(e.target.value);
-                setCustomMinutes(val);
-                onSelectSec(val * 60);
-              }}
-              className="w-full h-3 bg-pink-200 rounded-lg appearance-none cursor-pointer accent-pink-500"
-            />
-          </div>
-        )}
+      {/* STEP 2: THEN CHOOSE ANIMATION */}
+      <div className="w-full mb-6">
+        <div className="text-center mb-3">
+          <span className="px-4 py-1 rounded-full bg-pink-100 text-pink-700 font-black text-xs uppercase tracking-wider">
+            Step 2: Choose Animation ✨
+          </span>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 mt-1">
+            What would you like to watch grow?
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 w-full px-2">
+          {timerModesInfo.map((m) => {
+            const isSelected = selectedMode === m.id;
+
+            return (
+              <motion.button
+                key={m.id}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onSelectMode(m.id)}
+                className={`relative rounded-3xl p-3 sm:p-4 text-center transition-all flex flex-col items-center justify-between border-4 ${
+                  isSelected
+                    ? 'bg-white shadow-xl ring-4 ring-pink-400/50 border-pink-500 scale-105 z-10'
+                    : 'bg-white/80 hover:bg-white border-transparent hover:border-pink-200 shadow-md'
+                }`}
+              >
+                {/* Icon bubble */}
+                <div
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr ${m.color} flex items-center justify-center text-3xl sm:text-4xl shadow-md mb-2`}
+                >
+                  <span>{m.icon}</span>
+                </div>
+
+                <span className="font-black text-slate-800 text-sm sm:text-base leading-tight">
+                  {m.title}
+                </span>
+
+                <span className="text-[11px] font-bold text-slate-500 mt-0.5">
+                  {m.subtitle}
+                </span>
+
+                {isSelected && (
+                  <div className="absolute -top-2 -right-2 bg-pink-500 text-white rounded-full p-1 shadow-md flex items-center justify-center">
+                    <Check className="w-4 h-4 stroke-[3]" />
+                  </div>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Immediate Launch Start Button */}
+      {/* STEP 3: START SITTING */}
       <motion.button
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.96 }}
         onClick={() => onStart(selectedSec, selectedMode)}
-        className="w-full max-w-md mt-6 py-4 px-6 rounded-3xl bg-gradient-to-r from-emerald-400 via-teal-400 to-green-500 text-white font-black text-xl sm:text-2xl shadow-xl shadow-green-200/80 border-4 border-white flex items-center justify-center gap-3 transition-transform"
+        className="w-full max-w-md mt-2 mb-4 py-4 px-6 rounded-3xl bg-gradient-to-r from-emerald-400 via-teal-400 to-green-500 text-white font-black text-xl sm:text-2xl shadow-xl shadow-green-200/80 border-4 border-white flex items-center justify-center gap-3 transition-transform"
       >
         <Play className="w-8 h-8 fill-current" />
-        <span>Start Sitting</span>
+        <span>Step 3: Start Sitting 🌸</span>
       </motion.button>
     </div>
   );
