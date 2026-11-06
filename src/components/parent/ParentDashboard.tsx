@@ -314,6 +314,56 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
             </div>
 
+            {/* Calming Nature Ambient Music (River, Rain, Sea) */}
+            <div className="pt-4 border-t border-slate-100">
+              <label className="block text-sm font-black text-slate-800 mb-1">
+                Calming Nature Ambient Music 🌊
+              </label>
+              <p className="text-xs text-slate-500 mb-3">
+                Continuous relaxing background soundscapes to help your child sit peacefully:
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                {[
+                  { id: 'river', icon: '🏞️', label: 'Forest River', desc: 'Babbling brook' },
+                  { id: 'rain', icon: '🌧️', label: 'Gentle Rain', desc: 'Soft rainfall' },
+                  { id: 'sea', icon: '🌊', label: 'Ocean Waves', desc: 'Rhythmic swells' },
+                  { id: 'none', icon: '🔇', label: 'No Music', desc: 'Muted ambient' },
+                ].map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => updateSetting('ambientSound', s.id as any)}
+                    className={`p-3 rounded-2xl border-2 text-center transition-all flex flex-col items-center ${
+                      settings.ambientSound === s.id
+                        ? 'bg-sky-50 border-sky-400 font-black text-sky-900 shadow-sm'
+                        : 'bg-slate-50 border-slate-200 text-slate-600'
+                    }`}
+                  >
+                    <span className="text-2xl mb-1">{s.icon}</span>
+                    <span className="font-bold text-xs sm:text-sm">{s.label}</span>
+                    <span className="text-[10px] text-slate-400 font-medium">{s.desc}</span>
+                  </button>
+                ))}
+              </div>
+
+              {settings.ambientSound !== 'none' && (
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+                  <span className="text-xs font-bold text-slate-600">Music Volume:</span>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="1.0"
+                    step="0.05"
+                    value={settings.ambientVolume || 0.35}
+                    onChange={(e) => updateSetting('ambientVolume', Number(e.target.value))}
+                    className="flex-1 h-2 bg-sky-200 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                  />
+                  <span className="text-xs font-extrabold text-slate-700 w-9 text-right">
+                    {Math.round((settings.ambientVolume || 0.35) * 100)}%
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Spoken instructions */}
             <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
               <div>

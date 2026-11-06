@@ -13,6 +13,8 @@ export const DEFAULT_SETTINGS: ParentSettings = {
   characterAnimation: true,
   soundMode: 'gentle',
   spokenInstructions: false,
+  ambientSound: 'river',
+  ambientVolume: 0.35,
   animationSpeed: 'normal',
   visualTheme: 'pastel',
   largeControls: false,

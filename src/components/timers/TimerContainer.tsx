@@ -6,6 +6,7 @@ import {
   ActivityItem,
   SessionRecord,
   GardenReward,
+  AmbientSoundType,
 } from '../../types';
 import { MagicGardenTimer } from './MagicGardenTimer';
 import { RainbowTimer } from './RainbowTimer';
@@ -19,7 +20,14 @@ import { VisualBreakModal } from '../ui/VisualBreakModal';
 import { CelebrationModal } from '../ui/CelebrationModal';
 import { ParentLockModal } from '../ui/ParentLockModal';
 import { requestScreenWakeLock, releaseScreenWakeLock } from '../../services/wakelock';
-import { playSoftTap, playCheckpointChime, playCompletionChime, speakGentlePhrase } from '../../services/audio';
+import {
+  playSoftTap,
+  playCheckpointChime,
+  playCompletionChime,
+  speakGentlePhrase,
+  startAmbientSound,
+  stopAmbientSound,
+} from '../../services/audio';
 import { saveSessionRecord, saveReward } from '../../services/storage';
 import { Pause, Play, X, Coffee, Lock } from 'lucide-react';
 
@@ -51,6 +59,19 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
   const [isCelebrationOpen, setIsCelebrationOpen] = useState(false);
   const [isParentLockOpen, setIsParentLockOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<'pause' | 'stop' | null>(null);
+  const [ambientSound, setAmbientSound] = useState<AmbientSoundType>(settings.ambientSound || 'river');
+
+  // Start & manage relaxing ambient soundscape (River, Rain, Sea, or None)
+  useEffect(() => {
+    if (ambientSound !== 'none') {
+      startAmbientSound(ambientSound, settings.ambientVolume || 0.35);
+    } else {
+      stopAmbientSound();
+    }
+    return () => {
+      stopAmbientSound();
+    };
+  }, [ambientSound, settings.ambientVolume]);
 
   // References for accurate timing
   const startTimestampRef = useRef<number>(Date.now());
@@ -98,7 +119,8 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
     isCompletedRef.current = true;
     setIsPaused(true);
 
-    // Audio cues
+    // Stop calming background music & play joyful completion melody
+    stopAmbientSound();
     playCompletionChime(settings.soundMode);
     speakGentlePhrase('All done! Wonderful job sitting!', settings.spokenInstructions);
 
@@ -206,6 +228,7 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
   };
 
   const executeStop = async () => {
+    stopAmbientSound();
     // Record incomplete session without penalty
     const elapsedSec = Math.floor(elapsedMs / 1000);
     const sessionRec: SessionRecord = {
@@ -277,19 +300,19 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
 
   return (
     <div className="fixed inset-0 z-40 bg-gradient-to-b from-[#E0F2FE] via-[#F0FDF4] to-[#FEFCE8] flex flex-col justify-between overflow-hidden select-none">
-      {/* Top Header Bar: First Activity card (if any) + Checkpoints */}
-      <div className="relative z-20 w-full p-3 sm:p-5 flex items-center justify-between gap-2 max-w-4xl mx-auto pr-24 sm:pr-28">
+      {/* Top Header Bar: First Activity card (if any) + Checkpoints + Calming Music + Break */}
+      <div className="relative z-20 w-full p-2.5 sm:p-5 flex items-center justify-between gap-2 max-w-5xl mx-auto pr-32 sm:pr-44 md:pr-48">
         {/* FIRST Activity visual badge */}
         {firstActivity ? (
-          <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl shadow-sm border border-pink-100">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-white/85 backdrop-blur-md px-2 py-1 sm:px-3.5 sm:py-2 rounded-2xl shadow-sm border border-pink-100">
             <span className="text-[10px] sm:text-xs font-black uppercase text-pink-500 tracking-wider">
               First
             </span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-pink-100 flex items-center justify-center overflow-hidden">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-xl bg-pink-100 flex items-center justify-center overflow-hidden">
               {firstActivity.customImageDataUrl ? (
                 <img src={firstActivity.customImageDataUrl} alt={firstActivity.title} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-sm sm:text-base">🪑</span>
+                <span className="text-xs sm:text-base">🪑</span>
               )}
             </div>
             <span className="text-xs sm:text-sm font-bold text-slate-700 hidden sm:inline">
@@ -301,33 +324,56 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
         )}
 
         {/* Visual Checkpoints Indicator */}
-        <VisualCheckpoints progress={progress} className="scale-75 sm:scale-95 origin-center" />
+        <VisualCheckpoints progress={progress} className="scale-70 sm:scale-90 md:scale-100 origin-center" />
 
-        {/* Break Button (if enabled) */}
-        {settings.allowVisualBreak ? (
-          <motion.button
-            whileTap={{ scale: 0.92 }}
-            onClick={handleTriggerBreak}
-            className="flex items-center gap-1.5 bg-white/80 hover:bg-white backdrop-blur-md px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-2xl shadow-sm border border-amber-200 text-amber-700 font-bold text-xs active:bg-amber-50"
-            title="Take a gentle break"
-          >
-            <Coffee className="w-3.5 h-3.5 text-amber-500" />
-            <span className="hidden xs:inline">Break</span>
-          </motion.button>
-        ) : (
-          <div />
-        )}
+        {/* Calming Nature Music Selector & Break Button */}
+        <div className="flex items-center gap-1.5">
+          {/* Nature Music Toggle (River / Rain / Sea / Off) */}
+          <div className="flex items-center bg-white/85 backdrop-blur-md p-1 rounded-2xl shadow-sm border border-sky-200">
+            {[
+              { type: 'river' as AmbientSoundType, icon: '🏞️', title: 'River' },
+              { type: 'rain' as AmbientSoundType, icon: '🌧️', title: 'Rain' },
+              { type: 'sea' as AmbientSoundType, icon: '🌊', title: 'Sea' },
+              { type: 'none' as AmbientSoundType, icon: '🔇', title: 'Mute' },
+            ].map((snd) => (
+              <button
+                key={snd.type}
+                onClick={() => setAmbientSound(snd.type)}
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-xs sm:text-sm transition-all ${
+                  ambientSound === snd.type
+                    ? 'bg-sky-400 text-white shadow-sm scale-105'
+                    : 'text-slate-400 hover:text-slate-700'
+                }`}
+                title={`Sound: ${snd.title}`}
+              >
+                <span>{snd.icon}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Break Button (if enabled) */}
+          {settings.allowVisualBreak && (
+            <motion.button
+              whileTap={{ scale: 0.92 }}
+              onClick={handleTriggerBreak}
+              className="flex items-center gap-1 bg-white/85 hover:bg-white backdrop-blur-md px-2 py-1.5 sm:px-3 sm:py-2 rounded-2xl shadow-sm border border-amber-200 text-amber-700 font-bold text-xs active:bg-amber-50"
+              title="Take a gentle break"
+            >
+              <Coffee className="w-3.5 h-3.5 text-amber-500" />
+              <span className="hidden md:inline">Break</span>
+            </motion.button>
+          )}
+        </div>
       </div>
 
-      {/* Top-Right Visual Timer Watch - Visible to kid on EVERY animation page */}
-      <div className="absolute top-2.5 right-2.5 sm:top-4 sm:right-6 z-30 pointer-events-auto">
+      {/* Top-Right Extra-Large Visual Timer Watch - Prominently visible to kid on EVERY animation page */}
+      <div className="absolute top-2 right-2 sm:top-3 sm:right-5 md:top-4 md:right-8 z-30 pointer-events-auto">
         <TimerWatch
           progress={progress}
           elapsedMs={elapsedMs}
           totalDurationMs={totalDurationMs}
           isPaused={isPaused}
           direction={settings.direction}
-          className="scale-90 sm:scale-100 origin-top-right"
         />
       </div>
 

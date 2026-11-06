@@ -16,6 +16,8 @@ export type SoundMode = 'gentle' | 'chime-only' | 'silent';
 
 export type VisualTheme = 'pastel' | 'bright' | 'high-contrast';
 
+export type AmbientSoundType = 'none' | 'river' | 'rain' | 'sea';
+
 export interface ParentSettings {
   defaultDurationSec: number;
   availablePresets: number[]; // e.g. [30, 60, 120, 180, 300, 600, 900, 1200, 1800]
@@ -25,6 +27,8 @@ export interface ParentSettings {
   characterAnimation: boolean;
   soundMode: SoundMode;
   spokenInstructions: boolean;
+  ambientSound: AmbientSoundType;
+  ambientVolume: number;
   animationSpeed: AnimationSpeed;
   visualTheme: VisualTheme;
   largeControls: boolean;

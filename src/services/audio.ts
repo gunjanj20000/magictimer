@@ -1,6 +1,17 @@
-import { SoundMode } from '../types';
+import { SoundMode, AmbientSoundType } from '../types';
 
 let audioCtx: AudioContext | null = null;
+
+// Global reference to active ambient soundscape
+interface ActiveAmbient {
+  type: AmbientSoundType;
+  source: AudioBufferSourceNode;
+  masterGain: GainNode;
+  nodesToDisconnect: AudioNode[];
+}
+
+let activeAmbient: ActiveAmbient | null = null;
+let cachedPinkNoiseBuffer: AudioBuffer | null = null;
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -96,6 +107,203 @@ export function playCompletionChime(soundMode: SoundMode) {
       playGentleTone(freq, 1.4, 0.12, 'sine');
     }, delay);
   });
+}
+
+/**
+ * Generates a seamless 5-second buffer of pink noise using Paul Kellet's algorithm
+ */
+function getPinkNoiseBuffer(ctx: AudioContext): AudioBuffer {
+  if (cachedPinkNoiseBuffer && cachedPinkNoiseBuffer.sampleRate === ctx.sampleRate) {
+    return cachedPinkNoiseBuffer;
+  }
+  const sampleRate = ctx.sampleRate;
+  const bufferSize = sampleRate * 5; // 5 seconds
+  const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
+  const data = buffer.getChannelData(0);
+
+  let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+  for (let i = 0; i < bufferSize; i++) {
+    const white = Math.random() * 2 - 1;
+    b0 = 0.99886 * b0 + white * 0.0555179;
+    b1 = 0.99332 * b1 + white * 0.0750759;
+    b2 = 0.96900 * b2 + white * 0.1538520;
+    b3 = 0.86650 * b3 + white * 0.3104856;
+    b4 = 0.55000 * b4 + white * 0.5329522;
+    b5 = -0.7616 * b5 - white * 0.0168980;
+    data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.09;
+    b6 = white * 0.115926;
+  }
+  cachedPinkNoiseBuffer = buffer;
+  return buffer;
+}
+
+/**
+ * Stops any active ambient sound smoothly
+ */
+export function stopAmbientSound() {
+  if (!activeAmbient) return;
+  try {
+    const { source, masterGain, nodesToDisconnect } = activeAmbient;
+    const ctx = getAudioContext();
+    if (ctx && masterGain) {
+      // Smooth fade out over 0.4 seconds to prevent clicking
+      const now = ctx.currentTime;
+      masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+      masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+      setTimeout(() => {
+        try {
+          source.stop();
+          source.disconnect();
+          nodesToDisconnect.forEach((node) => node.disconnect());
+        } catch {}
+      }, 450);
+    } else {
+      source.stop();
+      source.disconnect();
+      nodesToDisconnect.forEach((node) => node.disconnect());
+    }
+  } catch (err) {
+    console.warn('Error stopping ambient sound', err);
+  } finally {
+    activeAmbient = null;
+  }
+}
+
+/**
+ * Starts sensory-friendly nature ambient sound: River, Rain, or Sea
+ */
+export function startAmbientSound(type: AmbientSoundType, volume = 0.35) {
+  // If requested none, stop current sound
+  if (type === 'none') {
+    stopAmbientSound();
+    return;
+  }
+
+  // If already playing this type, just adjust volume
+  if (activeAmbient && activeAmbient.type === type) {
+    setAmbientVolume(volume);
+    return;
+  }
+
+  // Stop any existing ambient sound first
+  stopAmbientSound();
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+    const pinkBuffer = getPinkNoiseBuffer(ctx);
+    const source = ctx.createBufferSource();
+    source.buffer = pinkBuffer;
+    source.loop = true;
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.001, now);
+    masterGain.gain.linearRampToValueAtTime(volume * 0.8, now + 1.2); // gentle fade in
+
+    const nodesToDisconnect: AudioNode[] = [masterGain, source];
+
+    if (type === 'sea') {
+      // SEA / OCEAN: Lowpass filter modulated by slow sine LFO (8-second wave swells)
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(320, now);
+      filter.Q.setValueAtTime(1.2, now);
+
+      // Slow LFO for ocean wave swells (0.12 Hz = ~8.3 seconds cycle)
+      const lfo = ctx.createOscillator();
+      lfo.frequency.setValueAtTime(0.12, now);
+
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.setValueAtTime(180, now); // modulates filter from 140Hz to 500Hz
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(filter.frequency);
+      lfo.start(now);
+
+      source.connect(filter);
+      filter.connect(masterGain);
+      nodesToDisconnect.push(filter, lfo, lfoGain);
+
+    } else if (type === 'rain') {
+      // RAIN: Soft pink noise with warm lowpass (~850Hz) and gentle highpass
+      const highpass = ctx.createBiquadFilter();
+      highpass.type = 'highpass';
+      highpass.frequency.setValueAtTime(200, now);
+
+      const lowpass = ctx.createBiquadFilter();
+      lowpass.type = 'lowpass';
+      lowpass.frequency.setValueAtTime(950, now);
+      lowpass.Q.setValueAtTime(0.8, now);
+
+      source.connect(highpass);
+      highpass.connect(lowpass);
+      lowpass.connect(masterGain);
+      nodesToDisconnect.push(highpass, lowpass);
+
+    } else if (type === 'river') {
+      // RIVER / BROOK: Two resonant bandpasses + gentle wobble to simulate babbling water
+      const band1 = ctx.createBiquadFilter();
+      band1.type = 'bandpass';
+      band1.frequency.setValueAtTime(420, now);
+      band1.Q.setValueAtTime(2.2, now);
+
+      const band2 = ctx.createBiquadFilter();
+      band2.type = 'bandpass';
+      band2.frequency.setValueAtTime(920, now);
+      band2.Q.setValueAtTime(3.0, now);
+
+      // Subtle water stream motion LFO (0.7 Hz)
+      const streamLfo = ctx.createOscillator();
+      streamLfo.frequency.setValueAtTime(0.7, now);
+      const streamLfoGain = ctx.createGain();
+      streamLfoGain.gain.setValueAtTime(70, now);
+
+      streamLfo.connect(streamLfoGain);
+      streamLfoGain.connect(band1.frequency);
+      streamLfoGain.connect(band2.frequency);
+      streamLfo.start(now);
+
+      source.connect(band1);
+      source.connect(band2);
+      band1.connect(masterGain);
+      band2.connect(masterGain);
+      nodesToDisconnect.push(band1, band2, streamLfo, streamLfoGain);
+    }
+
+    masterGain.connect(ctx.destination);
+    source.start(now);
+
+    activeAmbient = {
+      type,
+      source,
+      masterGain,
+      nodesToDisconnect,
+    };
+  } catch (err) {
+    console.warn('Failed to start ambient sound:', err);
+  }
+}
+
+/**
+ * Updates the volume of the ambient soundscape smoothly
+ */
+export function setAmbientVolume(volume: number) {
+  if (!activeAmbient) return;
+  const ctx = getAudioContext();
+  if (ctx && activeAmbient.masterGain) {
+    const now = ctx.currentTime;
+    activeAmbient.masterGain.gain.setValueAtTime(activeAmbient.masterGain.gain.value, now);
+    activeAmbient.masterGain.gain.linearRampToValueAtTime(Math.max(0.001, volume * 0.8), now + 0.2);
+  }
+}
+
+/**
+ * Get the currently playing ambient sound type
+ */
+export function getActiveAmbientType(): AmbientSoundType {
+  return activeAmbient ? activeAmbient.type : 'none';
 }
 
 /**

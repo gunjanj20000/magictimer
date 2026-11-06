@@ -26,12 +26,12 @@ export const TimerWatch: React.FC<TimerWatchProps> = ({
   const secs = remainingSec % 60;
   const timeFormatted = `${mins}:${secs.toString().padStart(2, '0')}`;
 
-  // Pie slice calculations: radius 32, center (40, 44)
-  const cx = 40;
-  const cy = 44;
-  const r = 30;
+  // Extra-large clock dimensions: center (60, 64), radius 44
+  const cx = 60;
+  const cy = 64;
+  const r = 44;
 
-  // Angle in radians (clockwise from 12 o'clock)
+  // Pie slice calculations: angle in radians (clockwise from 12 o'clock)
   const angleRad = visualProgress * 2 * Math.PI;
   const x = cx + r * Math.sin(angleRad);
   const y = cy - r * Math.cos(angleRad);
@@ -46,114 +46,148 @@ export const TimerWatch: React.FC<TimerWatchProps> = ({
 
   return (
     <div
-      className={`relative select-none flex flex-col items-center filter drop-shadow-md transition-all ${className}`}
-      title={`Time remaining: ${timeFormatted}`}
+      className={`relative select-none flex flex-col items-center filter drop-shadow-xl transition-all ${className}`}
+      title={`Timer Watch: ${timeFormatted}`}
     >
-      <svg width="84" height="92" viewBox="0 0 80 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* SVG Watch Face (Large format: 120 x 132) */}
+      <svg
+        viewBox="0 0 120 132"
+        className="w-28 h-32 sm:w-36 sm:h-40 md:w-40 md:h-44 block"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <defs>
-          {/* Watch Case Metallic / Pastel Gradient */}
-          <linearGradient id="watchBezelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FDE047" />
-            <stop offset="50%" stop-color="#FACC15" />
-            <stop offset="100%" stop-color="#F59E0B" />
+          {/* Watch Case Golden Gradient */}
+          <linearGradient id="largeWatchBezel" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FEF08A" />
+            <stop offset="35%" stop-color="#FACC15" />
+            <stop offset="85%" stop-color="#F59E0B" />
+            <stop offset="100%" stop-color="#D97706" />
           </linearGradient>
 
-          {/* Wedge fill gradient */}
-          <linearGradient id="watchWedgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#F472B6" />
-            <stop offset="50%" stop-color="#FB7185" />
-            <stop offset="100%" stop-color="#F43F5E" />
+          {/* Time Timer Sweeping Pie Gradient (Warm gentle coral-pink) */}
+          <linearGradient id="largeWatchWedge" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FB7185" />
+            <stop offset="50%" stop-color="#F43F5E" />
+            <stop offset="100%" stop-color="#E11D48" />
           </linearGradient>
 
-          <radialGradient id="watchFaceGrad" cx="50%" cy="50%" r="50%">
+          {/* Face Background */}
+          <radialGradient id="largeWatchFace" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stop-color="#FFFFFF" />
-            <stop offset="100%" stop-color="#F8FAFC" />
+            <stop offset="85%" stop-color="#F8FAFC" />
+            <stop offset="100%" stop-color="#E2E8F0" />
           </radialGradient>
         </defs>
 
         {/* Watch Crown / Top Button */}
-        <rect x="35" y="2" width="10" height="7" rx="2.5" fill="#F59E0B" stroke="#D97706" strokeWidth="1" />
-        <rect x="33" y="7" width="14" height="3" rx="1.5" fill="#FACC15" />
+        <rect x="52" y="2" width="16" height="10" rx="3.5" fill="#F59E0B" stroke="#B45309" strokeWidth="1.5" />
+        <rect x="50" y="9" width="20" height="4" rx="2" fill="#FACC15" />
 
-        {/* Watch Strap Lugs */}
-        <path d="M 24 14 L 28 8 L 52 8 L 56 14" stroke="#CBD5E1" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.4" />
-        <path d="M 24 74 L 28 80 L 52 80 L 56 74" stroke="#CBD5E1" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.4" />
+        {/* Watch Strap Lugs Top & Bottom */}
+        <path d="M 36 18 L 42 10 L 78 10 L 84 18" stroke="#CBD5E1" strokeWidth="3.5" strokeLinecap="round" fill="none" opacity="0.45" />
+        <path d="M 36 110 L 42 118 L 78 118 L 84 110" stroke="#CBD5E1" strokeWidth="3.5" strokeLinecap="round" fill="none" opacity="0.45" />
 
-        {/* Outer Golden Bezel */}
-        <circle cx={cx} cy={cy} r="35" fill="url(#watchBezelGrad)" stroke="#D97706" strokeWidth="1.5" />
-        <circle cx={cx} cy={cy} r="32.5" fill="#FEF08A" opacity="0.6" />
+        {/* Outer Heavy Golden Bezel */}
+        <circle cx={cx} cy={cy} r="52" fill="url(#largeWatchBezel)" stroke="#B45309" strokeWidth="2" />
+        <circle cx={cx} cy={cy} r="48" fill="#FEF08A" opacity="0.65" />
 
-        {/* Watch Face Interior */}
-        <circle cx={cx} cy={cy} r={r} fill="url(#watchFaceGrad)" stroke="#E2E8F0" strokeWidth="1" />
+        {/* Inner Watch Dial Face */}
+        <circle cx={cx} cy={cy} r={r} fill="url(#largeWatchFace)" stroke="#CBD5E1" strokeWidth="1.5" />
 
-        {/* Faint Background Guide Ring */}
-        <circle cx={cx} cy={cy} r={r - 1} fill="none" stroke="#F1F5F9" strokeWidth="4" />
+        {/* Outer Rim Guide Ring */}
+        <circle cx={cx} cy={cy} r={r - 1} fill="none" stroke="#F1F5F9" strokeWidth="6" />
 
-        {/* Visual Progress Pie Wedge (Time Timer style) */}
+        {/* Visual Progress Pie Wedge (Time Timer Visual Countdown) */}
         {visualProgress > 0 && visualProgress < 0.999 ? (
           <path
             d={`M ${cx} ${cy} L ${cx} ${cy - r} A ${r} ${r} 0 ${largeArcFlag} 1 ${x} ${y} Z`}
-            fill="url(#watchWedgeGrad)"
-            opacity="0.82"
+            fill="url(#largeWatchWedge)"
+            opacity="0.85"
           />
         ) : visualProgress >= 0.999 ? (
-          <circle cx={cx} cy={cy} r={r} fill="url(#watchWedgeGrad)" opacity="0.85" />
+          <circle cx={cx} cy={cy} r={r} fill="url(#largeWatchWedge)" opacity="0.88" />
         ) : null}
 
-        {/* Hour / Checkpoint Marks on watch face */}
+        {/* Clock Hour Tick Marks (12, 3, 6, 9 Bold; others dotted) */}
         {/* 12 o'clock */}
-        <line x1={cx} y1={cy - r + 2} x2={cx} y2={cy - r + 6} stroke="#64748B" strokeWidth="2" strokeLinecap="round" />
+        <line x1={cx} y1={cy - r + 2} x2={cx} y2={cy - r + 8} stroke="#1E293B" strokeWidth="3" strokeLinecap="round" />
         {/* 3 o'clock */}
-        <line x1={cx + r - 6} y1={cy} x2={cx + r - 2} stroke="#64748B" strokeWidth="2" strokeLinecap="round" />
+        <line x1={cx + r - 8} y1={cy} x2={cx + r - 2} stroke="#1E293B" strokeWidth="3" strokeLinecap="round" />
         {/* 6 o'clock */}
-        <line x1={cx} y1={cy + r - 6} x2={cx} y2={cy + r - 2} stroke="#64748B" strokeWidth="2" strokeLinecap="round" />
+        <line x1={cx} y1={cy + r - 8} x2={cx} y2={cy + r - 2} stroke="#1E293B" strokeWidth="3" strokeLinecap="round" />
         {/* 9 o'clock */}
-        <line x1={cx - r + 2} y1={cy} x2={cx - r + 6} stroke="#64748B" strokeWidth="2" strokeLinecap="round" />
+        <line x1={cx - r + 2} y1={cy} x2={cx - r + 8} stroke="#1E293B" strokeWidth="3" strokeLinecap="round" />
 
-        {/* Watch Hand pointing to progress */}
+        {/* Minor ticks (1, 2, 4, 5, 7, 8, 10, 11) */}
+        {[30, 60, 120, 150, 210, 240, 300, 330].map((deg) => {
+          const rad = (deg * Math.PI) / 180;
+          const x1 = cx + (r - 5) * Math.sin(rad);
+          const y1 = cy - (r - 5) * Math.cos(rad);
+          const x2 = cx + (r - 2) * Math.sin(rad);
+          const y2 = cy - (r - 2) * Math.cos(rad);
+          return (
+            <line
+              key={deg}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke="#94A3B8"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          );
+        })}
+
+        {/* Clock Hand pointing to total sitting progress */}
         <g transform={`rotate(${handAngleDeg} ${cx} ${cy})`}>
           <line
             x1={cx}
             y1={cy}
             x2={cx}
-            y2={cy - r + 4}
-            stroke="#1E293B"
-            strokeWidth="2.5"
+            y2={cy - r + 6}
+            stroke="#0F172A"
+            strokeWidth="3.5"
             strokeLinecap="round"
           />
-          {/* Star at the tip of the hand */}
-          <polygon
-            points={`${cx},${cy - r + 3} ${cx + 2.5},${cy - r + 6} ${cx},${cy - r + 5} ${cx - 2.5},${cy - r + 6}`}
-            fill="#FACC15"
-            stroke="#F59E0B"
-            strokeWidth="0.8"
-          />
+          {/* Big Golden Star at tip of hand */}
+          <g transform={`translate(${cx}, ${cy - r + 4})`}>
+            <polygon
+              points="0,-6 2,-1 6,-1 3,2 4,6 0,3 -4,6 -3,2 -6,-1 -2,-1"
+              fill="#FACC15"
+              stroke="#D97706"
+              strokeWidth="1"
+            />
+          </g>
         </g>
 
-        {/* Center Pin */}
-        <circle cx={cx} cy={cy} r="3.5" fill="#FACC15" stroke="#D97706" strokeWidth="1" />
-        <circle cx={cx} cy={cy} r="1.5" fill="#FFFFFF" />
+        {/* Center Pivot Pin with Smiley */}
+        <circle cx={cx} cy={cy} r="5" fill="#FACC15" stroke="#B45309" strokeWidth="1.5" />
+        <circle cx={cx - 1.5} cy={cy - 1} r="0.8" fill="#1E293B" />
+        <circle cx={cx + 1.5} cy={cy - 1} r="0.8" fill="#1E293B" />
+        <path d={`M ${cx - 1.5} ${cy + 1} Q ${cx} ${cy + 2.5} ${cx + 1.5} ${cy + 1}`} stroke="#1E293B" strokeWidth="0.8" strokeLinecap="round" fill="none" />
 
-        {/* Active second-sweep rotating dot so kid sees the watch playing in real-time */}
+        {/* Live Second-Sweep Star Dot (active rotation so kid sees real movement) */}
         {!isPaused && (
           <g transform={`rotate(${secondAngleDeg} ${cx} ${cy})`}>
-            <circle cx={cx} cy={cy - r + 1} r="2" fill="#38BDF8" stroke="#FFFFFF" strokeWidth="0.8" />
+            <circle cx={cx} cy={cy - r + 1} r="3" fill="#38BDF8" stroke="#FFFFFF" strokeWidth="1.2" />
           </g>
         )}
 
-        {/* Paused Indicator */}
+        {/* Paused Badge */}
         {isPaused && (
-          <g transform={`translate(${cx - 7}, ${cy - 7})`}>
-            <circle cx="7" cy="7" r="7" fill="#F59E0B" />
-            <rect x="5" y="4" width="1.5" height="6" fill="#FFFFFF" rx="0.5" />
-            <rect x="8" y="4" width="1.5" height="6" fill="#FFFFFF" rx="0.5" />
+          <g transform={`translate(${cx - 10}, ${cy - 10})`}>
+            <circle cx="10" cy="10" r="10" fill="#F59E0B" stroke="#FFFFFF" strokeWidth="1.5" />
+            <rect x="7" y="6" width="2" height="8" fill="#FFFFFF" rx="1" />
+            <rect x="11" y="6" width="2" height="8" fill="#FFFFFF" rx="1" />
           </g>
         )}
       </svg>
 
-      {/* Digital Time Badge directly under the watch face */}
-      <div className="bg-white/90 backdrop-blur-md px-2 py-0.5 rounded-full border border-amber-200 shadow-sm -mt-2">
-        <span className="text-[11px] sm:text-xs font-black text-slate-700 tracking-wider">
+      {/* Large Digital Time Pill beneath watch */}
+      <div className="bg-white/95 backdrop-blur-md px-3 py-1 rounded-full border-2 border-amber-300 shadow-md -mt-3 sm:-mt-4">
+        <span className="text-sm sm:text-base font-black text-slate-800 tracking-wider">
           {timeFormatted}
         </span>
       </div>
