@@ -1,0 +1,18 @@
+{
+  "name": "Magic Garden: Visual Timer",
+  "short_name": "Magic Garden",
+  "description": "Autism-friendly visual timer PWA. Watch, Grow, and Celebrate!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#E0F2FE",
+  "theme_color": "#BAE6FD",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "128x128 192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

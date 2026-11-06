@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#BAE6FD" />
+    <meta name="description" content="Magic Garden - Autism-friendly visual timer PWA. Watch, Grow, and Celebrate!" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Magic Garden" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Google Fonts for gentle, rounded children typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <title>Magic Garden - Watch, Grow, and Celebrate!</title>
+    <style>
+      /* Prevent accidental selections or gestures that disrupt sensory experience */
+      * {
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        overscroll-behavior-y: none;
+        font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-[#E0F2FE] text-slate-800 antialiased selection:bg-pink-200">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
