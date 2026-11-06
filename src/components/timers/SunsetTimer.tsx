@@ -39,31 +39,31 @@ export const SunsetTimer: React.FC<TimerModeProps> = ({
           <defs>
             {/* Daytime Sky */}
             <linearGradient id="daySky" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#7DD3FC" />
-              <stop offset="60%" stop-color="#BAE6FD" />
-              <stop offset="100%" stop-color="#FEF08A" />
+              <stop offset="0%" stopColor="#7DD3FC" />
+              <stop offset="60%" stopColor="#BAE6FD" />
+              <stop offset="100%" stopColor="#FEF08A" />
             </linearGradient>
 
             {/* Sunset Sky */}
             <linearGradient id="sunsetSky" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#F472B6" />
-              <stop offset="40%" stop-color="#FB923C" />
-              <stop offset="80%" stop-color="#FACC15" />
-              <stop offset="100%" stop-color="#C084FC" />
+              <stop offset="0%" stopColor="#F472B6" />
+              <stop offset="40%" stopColor="#FB923C" />
+              <stop offset="80%" stopColor="#FACC15" />
+              <stop offset="100%" stopColor="#C084FC" />
             </linearGradient>
 
             {/* Twilight Night Sky */}
             <linearGradient id="twilightSky" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#312E81" />
-              <stop offset="50%" stop-color="#4C1D95" />
-              <stop offset="85%" stop-color="#831843" />
-              <stop offset="100%" stop-color="#1E1B4B" />
+              <stop offset="0%" stopColor="#312E81" />
+              <stop offset="50%" stopColor="#4C1D95" />
+              <stop offset="85%" stopColor="#831843" />
+              <stop offset="100%" stopColor="#1E1B4B" />
             </linearGradient>
 
             {/* Sun Glow */}
             <radialGradient id="sunOrbGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#FEF08A" stop-opacity="0.8" />
-              <stop offset="100%" stop-color="#F59E0B" stop-opacity="0" />
+              <stop offset="0%" stopColor="#FEF08A" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#F59E0B" stopOpacity="0" />
             </radialGradient>
           </defs>
 

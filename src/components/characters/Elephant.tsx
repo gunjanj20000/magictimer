@@ -30,12 +30,12 @@ export const Elephant: React.FC<CharacterProps> = ({ className = '', mood = 'idl
       <svg viewBox="0 0 160 160" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="elephantBody" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="#BAE6FD" />
-            <stop offset="100%" stop-color="#7DD3FC" />
+            <stop offset="0%" stopColor="#BAE6FD" />
+            <stop offset="100%" stopColor="#7DD3FC" />
           </radialGradient>
           <radialGradient id="elephantEar" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#FBCFE8" />
-            <stop offset="100%" stop-color="#F472B6" />
+            <stop offset="0%" stopColor="#FBCFE8" />
+            <stop offset="100%" stopColor="#F472B6" />
           </radialGradient>
         </defs>
 

@@ -59,24 +59,24 @@ export const TimerWatch: React.FC<TimerWatchProps> = ({
         <defs>
           {/* Watch Case Golden Gradient */}
           <linearGradient id="largeWatchBezel" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FEF08A" />
-            <stop offset="35%" stop-color="#FACC15" />
-            <stop offset="85%" stop-color="#F59E0B" />
-            <stop offset="100%" stop-color="#D97706" />
+            <stop offset="0%" stopColor="#FEF08A" />
+            <stop offset="35%" stopColor="#FACC15" />
+            <stop offset="85%" stopColor="#F59E0B" />
+            <stop offset="100%" stopColor="#D97706" />
           </linearGradient>
 
           {/* Time Timer Sweeping Pie Gradient (Warm gentle coral-pink) */}
           <linearGradient id="largeWatchWedge" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FB7185" />
-            <stop offset="50%" stop-color="#F43F5E" />
-            <stop offset="100%" stop-color="#E11D48" />
+            <stop offset="0%" stopColor="#FB7185" />
+            <stop offset="50%" stopColor="#F43F5E" />
+            <stop offset="100%" stopColor="#E11D48" />
           </linearGradient>
 
           {/* Face Background */}
           <radialGradient id="largeWatchFace" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#FFFFFF" />
-            <stop offset="85%" stop-color="#F8FAFC" />
-            <stop offset="100%" stop-color="#E2E8F0" />
+            <stop offset="0%" stopColor="#FFFFFF" />
+            <stop offset="85%" stopColor="#F8FAFC" />
+            <stop offset="100%" stopColor="#E2E8F0" />
           </radialGradient>
         </defs>
 

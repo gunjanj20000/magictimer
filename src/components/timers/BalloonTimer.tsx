@@ -34,13 +34,13 @@ export const BalloonTimer: React.FC<TimerModeProps> = ({
         <svg viewBox="0 0 400 380" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="skyGradBalloon" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#BAE6FD" />
-              <stop offset="70%" stop-color="#E0F2FE" />
-              <stop offset="100%" stop-color="#FEFCE8" />
+              <stop offset="0%" stopColor="#BAE6FD" />
+              <stop offset="70%" stopColor="#E0F2FE" />
+              <stop offset="100%" stopColor="#FEFCE8" />
             </linearGradient>
             <radialGradient id="balloonGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#FEF08A" stop-opacity="0.6" />
-              <stop offset="100%" stop-color="#FEF08A" stop-opacity="0" />
+              <stop offset="0%" stopColor="#FEF08A" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#FEF08A" stopOpacity="0" />
             </radialGradient>
           </defs>
 

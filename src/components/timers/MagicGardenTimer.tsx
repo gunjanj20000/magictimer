@@ -36,16 +36,16 @@ export const MagicGardenTimer: React.FC<TimerModeProps> = ({
         <svg viewBox="0 0 400 400" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <radialGradient id="sunBloom" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#FEF08A" stop-opacity="0.8" />
-              <stop offset="100%" stop-color="#FEF08A" stop-opacity="0" />
+              <stop offset="0%" stopColor="#FEF08A" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#FEF08A" stopOpacity="0" />
             </radialGradient>
             <linearGradient id="stemGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" stop-color="#15803D" />
-              <stop offset="100%" stop-color="#4ADE80" />
+              <stop offset="0%" stopColor="#15803D" />
+              <stop offset="100%" stopColor="#4ADE80" />
             </linearGradient>
             <radialGradient id="centerPollen" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#FEF9C3" />
-              <stop offset="100%" stop-color="#F59E0B" />
+              <stop offset="0%" stopColor="#FEF9C3" />
+              <stop offset="100%" stopColor="#F59E0B" />
             </radialGradient>
           </defs>
 

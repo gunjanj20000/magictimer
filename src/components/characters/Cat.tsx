@@ -30,8 +30,8 @@ export const Cat: React.FC<CharacterProps> = ({ className = '', mood = 'idle', s
       <svg viewBox="0 0 160 160" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="catBody" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="#FED7AA" />
-            <stop offset="100%" stop-color="#FB923C" />
+            <stop offset="0%" stopColor="#FED7AA" />
+            <stop offset="100%" stopColor="#FB923C" />
           </radialGradient>
         </defs>
 

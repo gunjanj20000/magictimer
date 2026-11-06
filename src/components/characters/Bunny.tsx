@@ -30,12 +30,12 @@ export const Bunny: React.FC<CharacterProps> = ({ className = '', mood = 'idle',
       <svg viewBox="0 0 160 160" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="bunnyBodyGrad" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="#FFFFFF" />
-            <stop offset="100%" stop-color="#F1F5F9" />
+            <stop offset="0%" stopColor="#FFFFFF" />
+            <stop offset="100%" stopColor="#F1F5F9" />
           </radialGradient>
           <radialGradient id="earInnerPink" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#FBCFE8" />
-            <stop offset="100%" stop-color="#F472B6" />
+            <stop offset="0%" stopColor="#FBCFE8" />
+            <stop offset="100%" stopColor="#F472B6" />
           </radialGradient>
         </defs>
 

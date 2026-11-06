@@ -167,28 +167,28 @@ export const HourglassTimer: React.FC<HourglassTimerProps> = ({
           <defs>
             {/* Hourglass Frame Wood/Gold Gradients */}
             <linearGradient id="hgFrameGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#78350F" />
-              <stop offset="30%" stop-color="#B45309" />
-              <stop offset="70%" stop-color="#D97706" />
-              <stop offset="100%" stop-color="#92400E" />
+              <stop offset="0%" stopColor="#78350F" />
+              <stop offset="30%" stopColor="#B45309" />
+              <stop offset="70%" stopColor="#D97706" />
+              <stop offset="100%" stopColor="#92400E" />
             </linearGradient>
 
             <linearGradient id="hgCapPlinth" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#FDE68A" />
-              <stop offset="50%" stop-color="#D97706" />
-              <stop offset="100%" stop-color="#78350F" />
+              <stop offset="0%" stopColor="#FDE68A" />
+              <stop offset="50%" stopColor="#D97706" />
+              <stop offset="100%" stopColor="#78350F" />
             </linearGradient>
 
             {/* Top Bulb Fill Gradient */}
             <linearGradient id="hgTopFill" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color={config.topGradStart} />
-              <stop offset="100%" stop-color={config.topGradEnd} />
+              <stop offset="0%" stopColor={config.topGradStart} />
+              <stop offset="100%" stopColor={config.topGradEnd} />
             </linearGradient>
 
             {/* Bottom Bulb Fill Gradient */}
             <linearGradient id="hgBottomFill" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color={config.bottomGradStart} />
-              <stop offset="100%" stop-color={config.bottomGradEnd} />
+              <stop offset="0%" stopColor={config.bottomGradStart} />
+              <stop offset="100%" stopColor={config.bottomGradEnd} />
             </linearGradient>
 
             {/* Glass Clip Paths: Outer Glass Bulb Shape */}

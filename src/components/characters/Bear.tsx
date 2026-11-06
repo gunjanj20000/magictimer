@@ -30,8 +30,8 @@ export const Bear: React.FC<CharacterProps> = ({ className = '', mood = 'idle', 
       <svg viewBox="0 0 160 160" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="bearBody" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="#D97706" />
-            <stop offset="100%" stop-color="#B45309" />
+            <stop offset="0%" stopColor="#D97706" />
+            <stop offset="100%" stopColor="#B45309" />
           </radialGradient>
         </defs>
 
