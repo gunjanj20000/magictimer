@@ -108,6 +108,7 @@ export const GradualTrainingScreen: React.FC<GradualTrainingScreenProps> = ({
           <span className="text-[11px] font-bold text-amber-900 mr-1">Animation:</span>
           {[
             { id: 'journey' as TimerMode, icon: '🏡', label: 'Journey' },
+            { id: 'hourglass' as TimerMode, icon: '⏳', label: 'Hourglass' },
             { id: 'garden' as TimerMode, icon: '🌸', label: 'Flower' },
             { id: 'rainbow' as TimerMode, icon: '🌈', label: 'Rainbow' },
             { id: 'balloon' as TimerMode, icon: '🎈', label: 'Balloon' },

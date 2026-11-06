@@ -54,6 +54,7 @@ export const FirstThenScreen: React.FC<FirstThenScreenProps> = ({
 
   const timerModesList: { id: TimerMode; label: string; icon: string }[] = [
     { id: 'garden', label: 'Flower', icon: '🌸' },
+    { id: 'hourglass', label: 'Hourglass', icon: '⏳' },
     { id: 'rainbow', label: 'Rainbow', icon: '🌈' },
     { id: 'journey', label: 'Journey', icon: '🏡' },
     { id: 'balloon', label: 'Balloon', icon: '🎈' },

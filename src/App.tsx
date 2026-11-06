@@ -227,10 +227,16 @@ export function App() {
             selectedSec={activeDurationSec}
             selectedMode={activeTimerMode}
             characterId={settings.character}
+            hourglassFill={settings.hourglassFill}
             onSelectSec={(sec) => setActiveDurationSec(sec)}
             onSelectMode={(mode) => {
               setActiveTimerMode(mode);
               const updated = { ...settings, defaultMode: mode };
+              setSettings(updated);
+              saveSettings(updated);
+            }}
+            onSelectHourglassFill={(fill) => {
+              const updated = { ...settings, hourglassFill: fill };
               setSettings(updated);
               saveSettings(updated);
             }}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { TimerMode, CharacterId } from '../../types';
+import { TimerMode, CharacterId, HourglassFillType } from '../../types';
 import { CHARACTER_META } from '../characters/CharacterAvatar';
+import { HOURGLASS_FILL_CONFIGS } from '../timers/HourglassTimer';
 import { Play, Sparkles, Check } from 'lucide-react';
 
 interface PresetPickerProps {
@@ -9,8 +10,10 @@ interface PresetPickerProps {
   selectedSec: number;
   selectedMode: TimerMode;
   characterId: CharacterId;
+  hourglassFill?: HourglassFillType;
   onSelectSec: (sec: number) => void;
   onSelectMode: (mode: TimerMode) => void;
+  onSelectHourglassFill?: (fill: HourglassFillType) => void;
   onStart: (sec: number, mode: TimerMode) => void;
   className?: string;
 }
@@ -40,8 +43,10 @@ export const PresetPicker: React.FC<PresetPickerProps> = ({
   selectedSec,
   selectedMode,
   characterId,
+  hourglassFill = 'sand-gold',
   onSelectSec,
   onSelectMode,
+  onSelectHourglassFill,
   onStart,
   className = '',
 }) => {
@@ -58,6 +63,7 @@ export const PresetPicker: React.FC<PresetPickerProps> = ({
     color: string;
   }[] = [
     { id: 'garden', title: 'Magic Flower', subtitle: 'Grows & blooms', icon: '🌸', color: 'from-pink-300 to-rose-400' },
+    { id: 'hourglass', title: 'Hourglass Flow', subtitle: 'Sand & water stream', icon: '⏳', color: 'from-amber-300 to-yellow-500' },
     { id: 'rainbow', title: 'Rainbow Arch', subtitle: 'Colors fill up', icon: '🌈', color: 'from-amber-300 to-orange-400' },
     { id: 'journey', title: `${characterName} Journey`, subtitle: 'Walks to cozy home', icon: '🏡', color: 'from-emerald-300 to-teal-400' },
     { id: 'balloon', title: 'Balloon Float', subtitle: 'Gently ascends', icon: '🎈', color: 'from-sky-300 to-blue-400' },
@@ -210,6 +216,36 @@ export const PresetPicker: React.FC<PresetPickerProps> = ({
             );
           })}
         </div>
+
+        {/* Hourglass Sand / Water Item Selector */}
+        {selectedMode === 'hourglass' && (
+          <div className="mt-4 p-3.5 bg-amber-50/90 rounded-3xl border-2 border-amber-300 w-full flex flex-col items-center animate-fade-in shadow-inner">
+            <span className="text-xs font-black text-amber-900 mb-2">
+              Choose Sand or Water Liquid Item:
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 w-full">
+              {(Object.keys(HOURGLASS_FILL_CONFIGS) as HourglassFillType[]).map((key) => {
+                const item = HOURGLASS_FILL_CONFIGS[key];
+                const isSelected = hourglassFill === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => onSelectHourglassFill?.(key)}
+                    className={`flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-2xl text-xs font-bold transition-all border ${
+                      isSelected
+                        ? `${item.badgeColor} shadow-md scale-105 font-black ring-2 ring-amber-400`
+                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    <span className="text-base">{item.icon}</span>
+                    <span className="leading-tight">{item.label.split(' ')[0]}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* STEP 3: START SITTING */}

@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS: ParentSettings = {
   direction: 'grow',
   character: 'bunny',
   characterAnimation: true,
+  hourglassFill: 'sand-gold',
   soundMode: 'gentle',
   spokenInstructions: false,
   ambientSound: 'river',

@@ -36,6 +36,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     balloon: { icon: '🎈', subtitle: 'Float Balloon' },
     butterfly: { icon: '🦋', subtitle: 'Butterfly Hop' },
     sunset: { icon: '🌙', subtitle: 'Gentle Sunset' },
+    hourglass: { icon: '⏳', subtitle: 'Hourglass Stream' },
   };
 
   const activeModeVisual = modeDescriptions[currentMode] || modeDescriptions.garden;

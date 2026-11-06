@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ParentSettings, SessionRecord } from '../../types';
+import { ParentSettings, SessionRecord, HourglassFillType } from '../../types';
 import { TimerModePreview } from './TimerModePreview';
 import { SessionHistoryView } from './SessionHistoryView';
 import { CHARACTER_META } from '../characters/CharacterAvatar';
+import { HOURGLASS_FILL_CONFIGS } from '../timers/HourglassTimer';
 import { ChevronLeft, Sliders, User, ShieldCheck, History, Check, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -187,9 +188,42 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 currentMode={settings.defaultMode}
                 characterId={settings.character}
                 direction={settings.direction}
+                hourglassFill={settings.hourglassFill}
                 onSelectMode={(mode) => updateSetting('defaultMode', mode)}
               />
             </div>
+
+            {/* Hourglass Sand / Water Liquid Item Selector */}
+            {settings.defaultMode === 'hourglass' && (
+              <div className="pt-3 border-t border-slate-100 flex flex-col">
+                <label className="block text-sm font-black text-slate-800 mb-1">
+                  Hourglass Flow Liquid or Sand Item
+                </label>
+                <p className="text-xs text-slate-500 mb-2">
+                  Choose from golden sand, pink kinetic sand, ocean water, or rainbow stardust:
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full">
+                  {(Object.keys(HOURGLASS_FILL_CONFIGS) as HourglassFillType[]).map((key) => {
+                    const item = HOURGLASS_FILL_CONFIGS[key];
+                    const isSelected = settings.hourglassFill === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => updateSetting('hourglassFill', key)}
+                        className={`p-2.5 rounded-2xl border-2 flex items-center gap-2 transition-all ${
+                          isSelected
+                            ? `${item.badgeColor} font-black shadow-sm ring-2 ring-amber-300`
+                            : 'bg-slate-50 border-slate-200 text-slate-700'
+                        }`}
+                      >
+                        <span className="text-xl">{item.icon}</span>
+                        <span className="text-xs font-bold">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Direction toggle: Grow vs. Disappear */}
             <div className="pt-4 border-t border-slate-100">

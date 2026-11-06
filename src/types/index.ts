@@ -6,7 +6,16 @@ export type TimerMode =
   | 'journey'    // Mode C: Character Journey to Home
   | 'balloon'    // Mode D: Floating Hot Air Balloon
   | 'butterfly'  // Mode E: Butterfly Flower Hop
-  | 'sunset';    // Mode F: Sunset to Moon & Stars
+  | 'sunset'     // Mode F: Sunset to Moon & Stars
+  | 'hourglass'; // Mode G: Animated Hourglass (Sand & Water Flow)
+
+export type HourglassFillType = 
+  | 'sand-gold'    // Golden Beach Sand
+  | 'sand-pink'    // Pink Kinetic Magic Sand
+  | 'water-blue'   // Ocean Azure Water with Bubbles
+  | 'sand-purple'  // Sensory Berry Purple Sand
+  | 'water-green'  // Emerald Stream Water
+  | 'rainbow';     // Shifting Rainbow Stardust
 
 export type TimerDirection = 'grow' | 'disappear'; // Grow up to completion vs. count down
 
@@ -25,6 +34,7 @@ export interface ParentSettings {
   direction: TimerDirection;
   character: CharacterId;
   characterAnimation: boolean;
+  hourglassFill: HourglassFillType;
   soundMode: SoundMode;
   spokenInstructions: boolean;
   ambientSound: AmbientSoundType;

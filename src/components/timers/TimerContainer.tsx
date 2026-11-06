@@ -7,6 +7,7 @@ import {
   SessionRecord,
   GardenReward,
   AmbientSoundType,
+  HourglassFillType,
 } from '../../types';
 import { MagicGardenTimer } from './MagicGardenTimer';
 import { RainbowTimer } from './RainbowTimer';
@@ -14,6 +15,7 @@ import { BunnyJourneyTimer } from './BunnyJourneyTimer';
 import { BalloonTimer } from './BalloonTimer';
 import { ButterflyTimer } from './ButterflyTimer';
 import { SunsetTimer } from './SunsetTimer';
+import { HourglassTimer } from './HourglassTimer';
 import { VisualCheckpoints } from './VisualCheckpoints';
 import { TimerWatch } from './TimerWatch';
 import { VisualBreakModal } from '../ui/VisualBreakModal';
@@ -60,6 +62,7 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
   const [isParentLockOpen, setIsParentLockOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<'pause' | 'stop' | null>(null);
   const [ambientSound, setAmbientSound] = useState<AmbientSoundType>(settings.ambientSound || 'river');
+  const [hourglassFill, setHourglassFill] = useState<HourglassFillType>(settings.hourglassFill || 'sand-gold');
 
   // Start & manage relaxing ambient soundscape (River, Rain, Sea, or None)
   useEffect(() => {
@@ -292,6 +295,14 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
         return <ButterflyTimer {...props} />;
       case 'sunset':
         return <SunsetTimer {...props} />;
+      case 'hourglass':
+        return (
+          <HourglassTimer
+            {...props}
+            fillType={hourglassFill}
+            onSelectFillType={(f) => setHourglassFill(f)}
+          />
+        );
       case 'garden':
       default:
         return <MagicGardenTimer {...props} />;

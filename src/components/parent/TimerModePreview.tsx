@@ -6,11 +6,14 @@ import { BunnyJourneyTimer } from '../timers/BunnyJourneyTimer';
 import { BalloonTimer } from '../timers/BalloonTimer';
 import { ButterflyTimer } from '../timers/ButterflyTimer';
 import { SunsetTimer } from '../timers/SunsetTimer';
+import { HourglassTimer } from '../timers/HourglassTimer';
+import { HourglassFillType } from '../../types';
 
 interface TimerModePreviewProps {
   currentMode: TimerMode;
   characterId: CharacterId;
   direction: TimerDirection;
+  hourglassFill?: HourglassFillType;
   onSelectMode: (mode: TimerMode) => void;
 }
 
@@ -18,6 +21,7 @@ export const TimerModePreview: React.FC<TimerModePreviewProps> = ({
   currentMode,
   characterId,
   direction,
+  hourglassFill,
   onSelectMode,
 }) => {
   const [previewProgress, setPreviewProgress] = useState(0.5);
@@ -29,6 +33,7 @@ export const TimerModePreview: React.FC<TimerModePreviewProps> = ({
     { id: 'balloon', title: 'Balloon Float', desc: 'Pastel balloon gently ascends to starry sky', icon: '🎈' },
     { id: 'butterfly', title: 'Butterfly Hop', desc: 'Butterfly flutters between flowers', icon: '🦋' },
     { id: 'sunset', title: 'Sunset to Moon', desc: 'Sun sets gently into smiling crescent moon', icon: '🌙' },
+    { id: 'hourglass', title: 'Hourglass Flow', desc: 'Sand & water trickles with real time', icon: '⏳' },
   ];
 
   const renderPreviewMode = () => {
@@ -51,6 +56,8 @@ export const TimerModePreview: React.FC<TimerModePreviewProps> = ({
         return <ButterflyTimer {...props} />;
       case 'sunset':
         return <SunsetTimer {...props} />;
+      case 'hourglass':
+        return <HourglassTimer {...props} fillType={hourglassFill || 'sand-gold'} />;
       case 'garden':
       default:
         return <MagicGardenTimer {...props} />;
