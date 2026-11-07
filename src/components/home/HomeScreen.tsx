@@ -8,20 +8,31 @@ import { Sparkles, Star, Settings } from 'lucide-react';
 interface HomeScreenProps {
   settings: ParentSettings;
   currentMode: TimerMode;
+  lastDurationSec?: number;
   totalStars: number;
   onSelectCharacter: (id: CharacterId) => void;
   onStartSitting: () => void;
+  onQuickStart: () => void;
   onOpenFirstThen: () => void;
   onOpenRewards: () => void;
   onOpenSettings: () => void;
 }
 
+function formatMinutes(sec: number): string {
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const rem = sec % 60;
+  return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
+}
+
 export const HomeScreen: React.FC<HomeScreenProps> = ({
   settings,
   currentMode,
+  lastDurationSec = 120,
   totalStars,
   onSelectCharacter,
   onStartSitting,
+  onQuickStart,
   onOpenFirstThen,
   onOpenRewards,
   onOpenSettings,
@@ -159,21 +170,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </span>
         </motion.button>
 
-        {/* 3. MY STARS (GARDEN REWARDS) */}
+        {/* 3. QUICK START BUTTON (Replays last selected play) */}
         <motion.button
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.95 }}
-          onClick={onOpenRewards}
-          className="col-span-1 rounded-4xl p-4 sm:p-5 bg-gradient-to-tr from-amber-400 to-yellow-500 text-white shadow-xl shadow-yellow-200 border-4 border-white flex flex-col items-center justify-between text-center transition-all"
+          onClick={onQuickStart}
+          className="col-span-1 rounded-4xl p-4 sm:p-5 bg-gradient-to-tr from-amber-400 via-orange-400 to-amber-500 text-white shadow-xl shadow-amber-200 border-4 border-white flex flex-col items-center justify-between text-center transition-all"
         >
           <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-3xl bg-white/25 flex items-center justify-center text-4xl mb-2 shadow-inner">
-            <span>🌟</span>
+            <span>⚡</span>
           </div>
           <span className="font-black text-base sm:text-xl leading-tight">
-            MY STARS
+            QUICK START
           </span>
           <span className="text-xs font-bold text-amber-100 mt-0.5">
-            {totalStars} in Garden
+            Replay {formatMinutes(lastDurationSec)} {activeModeVisual.icon}
           </span>
         </motion.button>
 

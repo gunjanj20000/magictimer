@@ -68,8 +68,21 @@ export function App() {
       setHistory(h);
       setTrainingLevels(t);
       setActivities(a);
-      setActiveDurationSec(s.defaultDurationSec);
-      setActiveTimerMode(s.defaultMode);
+
+      let initialSec = s.defaultDurationSec;
+      let initialMode = s.defaultMode;
+      try {
+        const savedLast = localStorage.getItem('magic_timer_last_play');
+        if (savedLast) {
+          const parsed = JSON.parse(savedLast);
+          if (parsed.durationSec) initialSec = parsed.durationSec;
+          if (parsed.mode) initialMode = parsed.mode;
+        }
+      } catch (e) {
+        // ignore
+      }
+      setActiveDurationSec(initialSec);
+      setActiveTimerMode(initialMode);
     }
     initData();
 
@@ -115,6 +128,16 @@ export function App() {
     setActiveFirstActivity(first);
     setActiveThenActivity(then);
     setActiveTrainingLevel(trainingLevel);
+
+    try {
+      localStorage.setItem('magic_timer_last_play', JSON.stringify({
+        durationSec,
+        mode: resolvedMode,
+      }));
+    } catch (e) {
+      // ignore
+    }
+
     setCurrentView('timer');
   };
 
@@ -186,9 +209,11 @@ export function App() {
         <HomeScreen
           settings={settings}
           currentMode={activeTimerMode}
+          lastDurationSec={activeDurationSec}
           totalStars={totalStars}
           onSelectCharacter={handleSelectCharacter}
           onStartSitting={() => setCurrentView('presets')}
+          onQuickStart={() => launchTimer(activeDurationSec, activeTimerMode)}
           onOpenFirstThen={() => setCurrentView('firstThen')}
           onOpenRewards={() => setCurrentView('rewards')}
           onOpenSettings={handleOpenSettingsProtected}
