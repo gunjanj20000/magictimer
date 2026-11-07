@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CharacterId, TimerDirection } from '../../types';
-import { CharacterAvatar } from '../characters/CharacterAvatar';
+import { MovableMascot } from '../characters/MovableMascot';
 
 interface TimerModeProps {
   progress: number;
@@ -236,25 +236,25 @@ export const RainbowTimer: React.FC<TimerModeProps> = ({
             </g>
           )}
 
-          {/* Character Watching and Cheering from the Flower Meadow */}
-          <foreignObject x={24} y={260} width={90} height={90}>
-            <div className="w-full h-full flex items-center justify-center">
-              <CharacterAvatar
-                characterId={characterId}
-                mood={
-                  isComplete
-                    ? 'celebrate'
-                    : isPaused
-                    ? 'idle'
-                    : isAlmostDone
-                    ? 'almost'
-                    : 'happy'
-                }
-                size={78}
-              />
-            </div>
-          </foreignObject>
+          {/* SVG Elements End */}
         </svg>
+
+        {/* Movable Mascot watching the rainbow (Child can drag anywhere!) */}
+        <div className="absolute bottom-3 left-4 sm:bottom-6 sm:left-8 z-30">
+          <MovableMascot
+            characterId={characterId}
+            mood={
+              isComplete
+                ? 'celebrate'
+                : isPaused
+                ? 'idle'
+                : isAlmostDone
+                ? 'almost'
+                : 'happy'
+            }
+            size={84}
+          />
+        </div>
       </div>
     </div>
   );

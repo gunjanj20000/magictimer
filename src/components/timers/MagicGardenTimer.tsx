@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CharacterId } from '../../types';
-import { CharacterAvatar } from '../characters/CharacterAvatar';
+import { MovableMascot } from '../characters/MovableMascot';
 
 interface TimerModeProps {
   progress: number; // 0.0 to 1.0 (1.0 = completed)
@@ -194,9 +194,9 @@ export const MagicGardenTimer: React.FC<TimerModeProps> = ({
           )}
         </svg>
 
-        {/* Character standing alongside watering / watching */}
-        <div className="absolute bottom-6 left-6 sm:bottom-10 sm:left-12">
-          <CharacterAvatar
+        {/* Movable Character standing alongside (Kid can drag anywhere!) */}
+        <div className="absolute bottom-6 left-6 sm:bottom-10 sm:left-12 z-30">
+          <MovableMascot
             characterId={characterId}
             mood={isBloom ? 'celebrate' : isAlmostDone ? 'almost' : 'happy'}
             size={90}

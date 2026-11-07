@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { CharacterId, ParentSettings, TimerMode } from '../../types';
 import { CharacterAvatar, CHARACTER_META } from '../characters/CharacterAvatar';
+import { MovableMascot } from '../characters/MovableMascot';
 import { Sparkles, Star, Settings } from 'lucide-react';
 
 interface HomeScreenProps {
@@ -114,9 +115,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           Watch, Grow, and Celebrate! 🌷
         </p>
 
-        {/* Big Interactive Mascot */}
-        <div className="my-2 sm:my-4 cursor-pointer" onClick={onStartSitting}>
-          <CharacterAvatar characterId={settings.character} mood="happy" size={145} />
+        {/* Big Interactive Movable Mascot (Child can drag or play with anywhere) */}
+        <div className="my-2 sm:my-4 z-30">
+          <MovableMascot characterId={settings.character} mood="happy" size={145} showHint={true} />
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CharacterId } from '../../types';
-import { CharacterAvatar } from '../characters/CharacterAvatar';
+import { MovableMascot } from '../characters/MovableMascot';
 
 interface TimerModeProps {
   progress: number;
@@ -155,12 +155,12 @@ export const BalloonTimer: React.FC<TimerModeProps> = ({
           )}
         </svg>
 
-        {/* Character sitting on meadow waving up, or peaking from basket */}
-        <div className="absolute bottom-4 left-6 sm:bottom-8 sm:left-12">
-          <CharacterAvatar
+        {/* Movable Character on meadow waving up (Kid can drag anywhere!) */}
+        <div className="absolute bottom-4 left-6 sm:bottom-8 sm:left-12 z-30">
+          <MovableMascot
             characterId={characterId}
             mood={isHigh ? 'celebrate' : isAlmostDone ? 'almost' : 'happy'}
-            size={85}
+            size={86}
           />
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CharacterId } from '../../types';
-import { CharacterAvatar } from '../characters/CharacterAvatar';
+import { MovableMascot } from '../characters/MovableMascot';
 
 interface TimerModeProps {
   progress: number;
@@ -174,12 +174,12 @@ export const ButterflyTimer: React.FC<TimerModeProps> = ({
           </g>
         </svg>
 
-        {/* Character watching in meadow */}
-        <div className="absolute bottom-4 left-6 sm:bottom-8 sm:left-10">
-          <CharacterAvatar
+        {/* Movable Character in meadow (Kid can drag anywhere!) */}
+        <div className="absolute bottom-4 left-6 sm:bottom-8 sm:left-10 z-30">
+          <MovableMascot
             characterId={characterId}
             mood={isFinalFlower ? 'celebrate' : isAlmostDone ? 'almost' : 'happy'}
-            size={85}
+            size={86}
           />
         </div>
       </div>

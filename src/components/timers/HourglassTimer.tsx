@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CharacterId, HourglassFillType } from '../../types';
-import { CharacterAvatar } from '../characters/CharacterAvatar';
+import { MovableMascot } from '../characters/MovableMascot';
 
 interface HourglassTimerProps {
   progress: number; // 0.0 to 1.0 (1.0 = completed)
@@ -369,12 +369,12 @@ export const HourglassTimer: React.FC<HourglassTimerProps> = ({
           )}
         </svg>
 
-        {/* Mascot standing beside the hourglass */}
-        <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4">
-          <CharacterAvatar
+        {/* Movable Mascot standing beside the hourglass (Child can touch & drag anywhere!) */}
+        <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 z-30">
+          <MovableMascot
             characterId={characterId}
             mood={isFinished ? 'celebrate' : isAlmostDone ? 'almost' : 'happy'}
-            size={85}
+            size={88}
           />
         </div>
       </div>

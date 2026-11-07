@@ -1,6 +1,6 @@
 import React from 'react';
 import { CharacterId } from '../../types';
-import { CharacterAvatar } from '../characters/CharacterAvatar';
+import { MovableMascot } from '../characters/MovableMascot';
 
 interface TimerModeProps {
   progress: number;
@@ -164,12 +164,12 @@ export const SunsetTimer: React.FC<TimerModeProps> = ({
           <circle cx="280" cy="320" r="2" fill="#FFFFFF" />
         </svg>
 
-        {/* Character standing peacefully */}
-        <div className="absolute bottom-4 left-6 sm:bottom-8 sm:left-10">
-          <CharacterAvatar
+        {/* Movable Character standing peacefully (Kid can drag anywhere!) */}
+        <div className="absolute bottom-4 left-6 sm:bottom-8 sm:left-10 z-30">
+          <MovableMascot
             characterId={characterId}
             mood={isNight ? 'celebrate' : isAlmostDone ? 'almost' : 'happy'}
-            size={85}
+            size={86}
           />
         </div>
       </div>
