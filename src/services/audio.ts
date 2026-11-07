@@ -12,6 +12,9 @@ interface ActiveAmbient {
 
 let activeAmbient: ActiveAmbient | null = null;
 let cachedPinkNoiseBuffer: AudioBuffer | null = null;
+let activeCustomCompletionAudio: HTMLAudioElement | null = null;
+let activeCustomAmbientAudio: HTMLAudioElement | null = null;
+let activePreviewAudio: HTMLAudioElement | null = null;
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -88,12 +91,37 @@ export function playCheckpointChime(soundMode: SoundMode) {
 }
 
 /**
- * Gentle celebration melody: peaceful pentatonic major chord progression (C - E - G - A - C6)
- * Like a gentle wind chime or lullaby box.
+ * Gentle celebration melody: peaceful pentatonic major chord progression or parent's custom sound
  */
-export function playCompletionChime(soundMode: SoundMode) {
+export function playCompletionChime(soundMode: SoundMode, customSoundDataUrl?: string) {
   if (soundMode === 'silent') return;
 
+  if (customSoundDataUrl) {
+    try {
+      if (activeCustomCompletionAudio) {
+        activeCustomCompletionAudio.pause();
+        activeCustomCompletionAudio.currentTime = 0;
+      }
+      const audio = new Audio(customSoundDataUrl);
+      audio.volume = 0.9;
+      activeCustomCompletionAudio = audio;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn('Custom audio playback failed, falling back to chime', err);
+          playDefaultCompletionMelody();
+        });
+      }
+      return;
+    } catch (e) {
+      console.warn('Error initiating custom audio', e);
+    }
+  }
+
+  playDefaultCompletionMelody();
+}
+
+function playDefaultCompletionMelody() {
   const notes = [
     { freq: 523.25, delay: 0 },    // C5
     { freq: 659.25, delay: 180 },  // E5
@@ -107,6 +135,40 @@ export function playCompletionChime(soundMode: SoundMode) {
       playGentleTone(freq, 1.4, 0.12, 'sine');
     }, delay);
   });
+}
+
+/**
+ * Preview / test audio helper for Parent Settings
+ */
+export function testPlayCustomSound(dataUrl: string, onEnded?: () => void): () => void {
+  stopCustomSoundPreview();
+  try {
+    const audio = new Audio(dataUrl);
+    audio.volume = 0.85;
+    activePreviewAudio = audio;
+    if (onEnded) {
+      audio.onended = () => {
+        activePreviewAudio = null;
+        onEnded();
+      };
+    }
+    audio.play().catch((e) => console.warn('Preview play error', e));
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+      if (activePreviewAudio === audio) activePreviewAudio = null;
+    };
+  } catch {
+    return () => {};
+  }
+}
+
+export function stopCustomSoundPreview() {
+  if (activePreviewAudio) {
+    activePreviewAudio.pause();
+    activePreviewAudio.currentTime = 0;
+    activePreviewAudio = null;
+  }
 }
 
 /**
@@ -141,6 +203,14 @@ function getPinkNoiseBuffer(ctx: AudioContext): AudioBuffer {
  * Stops any active ambient sound smoothly
  */
 export function stopAmbientSound() {
+  if (activeCustomAmbientAudio) {
+    try {
+      activeCustomAmbientAudio.pause();
+      activeCustomAmbientAudio.currentTime = 0;
+    } catch {}
+    activeCustomAmbientAudio = null;
+  }
+
   if (!activeAmbient) return;
   try {
     const { source, masterGain, nodesToDisconnect } = activeAmbient;
@@ -170,12 +240,35 @@ export function stopAmbientSound() {
 }
 
 /**
- * Starts sensory-friendly nature ambient sound: River, Rain, or Sea
+ * Starts sensory-friendly nature ambient sound: River, Rain, Sea, or Custom
  */
-export function startAmbientSound(type: AmbientSoundType, volume = 0.35) {
+export function startAmbientSound(type: AmbientSoundType, volume = 0.35, customAudioUrl?: string) {
   // If requested none, stop current sound
   if (type === 'none') {
     stopAmbientSound();
+    return;
+  }
+
+  // Handle Custom Audio Loop
+  if (type === 'custom') {
+    if (!customAudioUrl) {
+      stopAmbientSound();
+      return;
+    }
+    if (activeCustomAmbientAudio) {
+      activeCustomAmbientAudio.volume = Math.max(0.05, Math.min(1.0, volume));
+      return;
+    }
+    stopAmbientSound();
+    try {
+      const audio = new Audio(customAudioUrl);
+      audio.loop = true;
+      audio.volume = Math.max(0.05, Math.min(1.0, volume));
+      audio.play().catch((e) => console.warn('Custom ambient audio play error', e));
+      activeCustomAmbientAudio = audio;
+    } catch (e) {
+      console.warn('Failed custom ambient audio', e);
+    }
     return;
   }
 

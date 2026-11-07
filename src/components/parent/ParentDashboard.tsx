@@ -1,10 +1,25 @@
-import React, { useState } from 'react';
-import { ParentSettings, SessionRecord, HourglassFillType } from '../../types';
+import React, { useState, useRef } from 'react';
+import { ParentSettings, SessionRecord, HourglassFillType, CustomSoundUsage } from '../../types';
 import { TimerModePreview } from './TimerModePreview';
 import { SessionHistoryView } from './SessionHistoryView';
 import { CHARACTER_META } from '../characters/CharacterAvatar';
 import { HOURGLASS_FILL_CONFIGS } from '../timers/HourglassTimer';
-import { ChevronLeft, Sliders, User, ShieldCheck, History, Check, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { testPlayCustomSound, stopCustomSoundPreview } from '../../services/audio';
+import {
+  ChevronLeft,
+  Sliders,
+  User,
+  ShieldCheck,
+  History,
+  Check,
+  RefreshCw,
+  CheckCircle2,
+  Upload,
+  Mic,
+  Square,
+  Play,
+  Trash2,
+} from 'lucide-react';
 
 interface ParentDashboardProps {
   settings: ParentSettings;
@@ -26,6 +41,132 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [savedToast, setSavedToast] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
+
+  // Custom Sound and Voice Recorder States
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordIntervalRef = useRef<number | null>(null);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const stopPreviewCallbackRef = useRef<(() => void) | null>(null);
+
+  // Upload file handler
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const updated = {
+        ...settings,
+        customSoundDataUrl: result,
+        customSoundName: file.name,
+      };
+      setSettings(updated);
+      onSaveSettings(updated);
+      setSavedToast(true);
+      setTimeout(() => setSavedToast(false), 2000);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Start Voice Recording
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = reader.result as string;
+          const updated = {
+            ...settings,
+            customSoundDataUrl: base64,
+            customSoundName: `Voice_Recording_${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+          };
+          setSettings(updated);
+          onSaveSettings(updated);
+          setSavedToast(true);
+          setTimeout(() => setSavedToast(false), 2000);
+        };
+        reader.readAsDataURL(audioBlob);
+
+        // Stop all audio tracks
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      recorder.start();
+      setIsRecording(true);
+      setRecordingSeconds(0);
+      recordIntervalRef.current = window.setInterval(() => {
+        setRecordingSeconds((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      alert('Microphone access is required to record your voice message.');
+      console.warn('Microphone access error:', err);
+    }
+  };
+
+  // Stop Voice Recording
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+    if (recordIntervalRef.current) {
+      clearInterval(recordIntervalRef.current);
+      recordIntervalRef.current = null;
+    }
+  };
+
+  // Play / Stop Custom Sound Preview
+  const handleTogglePreview = () => {
+    if (isPlayingPreview) {
+      if (stopPreviewCallbackRef.current) {
+        stopPreviewCallbackRef.current();
+        stopPreviewCallbackRef.current = null;
+      }
+      stopCustomSoundPreview();
+      setIsPlayingPreview(false);
+    } else {
+      if (settings.customSoundDataUrl) {
+        setIsPlayingPreview(true);
+        stopPreviewCallbackRef.current = testPlayCustomSound(settings.customSoundDataUrl, () => {
+          setIsPlayingPreview(false);
+          stopPreviewCallbackRef.current = null;
+        });
+      }
+    }
+  };
+
+  // Remove Custom Sound
+  const handleRemoveCustomSound = () => {
+    if (isPlayingPreview) {
+      stopCustomSoundPreview();
+      setIsPlayingPreview(false);
+    }
+    const updated = {
+      ...settings,
+      customSoundDataUrl: undefined,
+      customSoundName: undefined,
+    };
+    setSettings(updated);
+    onSaveSettings(updated);
+    setSavedToast(true);
+    setTimeout(() => setSavedToast(false), 2000);
+  };
 
   const handleUpdateCode = async () => {
     setIsUpdating(true);
@@ -348,7 +489,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
             </div>
 
-            {/* Calming Nature Ambient Music (River, Rain, Sea) */}
+            {/* Calming Nature Ambient Music (River, Rain, Sea, Custom) */}
             <div className="pt-4 border-t border-slate-100">
               <label className="block text-sm font-black text-slate-800 mb-1">
                 Calming Nature Ambient Music 🌊
@@ -361,6 +502,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   { id: 'river', icon: '🏞️', label: 'Forest River', desc: 'Babbling brook' },
                   { id: 'rain', icon: '🌧️', label: 'Gentle Rain', desc: 'Soft rainfall' },
                   { id: 'sea', icon: '🌊', label: 'Ocean Waves', desc: 'Rhythmic swells' },
+                  ...(settings.customSoundDataUrl
+                    ? [{ id: 'custom', icon: '🎙️', label: 'Custom Audio', desc: settings.customSoundName || 'My Voice/Sound' }]
+                    : []),
                   { id: 'none', icon: '🔇', label: 'No Music', desc: 'Muted ambient' },
                 ].map((s) => (
                   <button
@@ -374,7 +518,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   >
                     <span className="text-2xl mb-1">{s.icon}</span>
                     <span className="font-bold text-xs sm:text-sm">{s.label}</span>
-                    <span className="text-[10px] text-slate-400 font-medium">{s.desc}</span>
+                    <span className="text-[10px] text-slate-400 font-medium line-clamp-1">{s.desc}</span>
                   </button>
                 ))}
               </div>
@@ -394,6 +538,138 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   <span className="text-xs font-extrabold text-slate-700 w-9 text-right">
                     {Math.round((settings.ambientVolume || 0.35) * 100)}%
                   </span>
+                </div>
+              )}
+            </div>
+
+            {/* Custom Sound or Voice Recording */}
+            <div className="pt-4 border-t border-slate-100">
+              <label className="block text-sm font-black text-slate-800 mb-1">
+                Custom Sound or Voice Recording 🎙️
+              </label>
+              <p className="text-xs text-slate-500 mb-3">
+                Record your own comforting voice encouragement (e.g. "All done! Great sitting!") or upload your child's favorite calming audio song.
+              </p>
+
+              {/* Action Buttons: Record Voice & Upload Audio */}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {/* Record Button */}
+                {!isRecording ? (
+                  <button
+                    type="button"
+                    onClick={startRecording}
+                    className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl border-2 border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs sm:text-sm transition-all shadow-sm active:scale-95"
+                  >
+                    <Mic className="w-4 h-4 text-rose-500" />
+                    <span>Record Voice Message</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={stopRecording}
+                    className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl border-2 border-red-500 bg-red-500 text-white font-bold text-xs sm:text-sm transition-all shadow-md animate-pulse"
+                  >
+                    <Square className="w-4 h-4 fill-white text-white" />
+                    <span>Stop Recording ({recordingSeconds}s)</span>
+                  </button>
+                )}
+
+                {/* Upload File Input */}
+                <label className="flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl border-2 border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs sm:text-sm transition-all shadow-sm cursor-pointer active:scale-95">
+                  <Upload className="w-4 h-4 text-indigo-500" />
+                  <span>Upload Audio File</span>
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {/* Active Custom Sound Card */}
+              {settings.customSoundDataUrl ? (
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-2xl border border-indigo-200 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-2xl shrink-0">🎵</span>
+                      <div className="min-w-0">
+                        <span className="text-xs font-black text-indigo-900 block truncate">
+                          {settings.customSoundName || 'Custom Audio'}
+                        </span>
+                        <span className="text-[10px] text-indigo-500 font-medium">
+                          Saved in settings (available offline)
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={handleTogglePreview}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs shadow-sm transition-all ${
+                          isPlayingPreview
+                            ? 'bg-rose-500 text-white animate-pulse'
+                            : 'bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95'
+                        }`}
+                      >
+                        {isPlayingPreview ? (
+                          <>
+                            <Square className="w-3.5 h-3.5 fill-white" />
+                            <span>Stop</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3.5 h-3.5 fill-white" />
+                            <span>Play Test</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleRemoveCustomSound}
+                        className="p-1.5 rounded-xl bg-white/80 hover:bg-rose-50 border border-slate-200 text-slate-500 hover:text-rose-600 transition-colors"
+                        title="Remove custom sound"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Usage Options */}
+                  <div className="pt-2 border-t border-indigo-100">
+                    <span className="text-xs font-bold text-indigo-800 block mb-1.5">
+                      When should this sound play?
+                    </span>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        { id: 'completion' as CustomSoundUsage, label: '🎉 Completion Alert', desc: 'Plays when time is up' },
+                        { id: 'ambient' as CustomSoundUsage, label: '🎶 Background Loop', desc: 'Continuous calming loop' },
+                        { id: 'both' as CustomSoundUsage, label: '✨ Both Loop & Alert', desc: 'Loops & celebrates' },
+                      ].map((u) => (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => updateSetting('customSoundUsage', u.id)}
+                          className={`p-2 rounded-xl border text-center transition-all ${
+                            (settings.customSoundUsage || 'completion') === u.id
+                              ? 'bg-indigo-500 text-white border-indigo-600 font-black shadow-sm'
+                              : 'bg-white border-indigo-100 text-indigo-900 font-medium hover:bg-indigo-50/50'
+                          }`}
+                        >
+                          <span className="block text-xs font-bold">{u.label}</span>
+                          <span className="text-[9px] opacity-80 block">{u.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-2xl bg-slate-50 border border-dashed border-slate-300 text-center">
+                  <p className="text-xs text-slate-400 font-medium">
+                    No custom sound or voice recording added yet. Record your voice or upload an audio file above.
+                  </p>
                 </div>
               )}
             </div>

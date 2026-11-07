@@ -25,7 +25,9 @@ export type SoundMode = 'gentle' | 'chime-only' | 'silent';
 
 export type VisualTheme = 'pastel' | 'bright' | 'high-contrast';
 
-export type AmbientSoundType = 'none' | 'river' | 'rain' | 'sea';
+export type AmbientSoundType = 'none' | 'river' | 'rain' | 'sea' | 'custom';
+
+export type CustomSoundUsage = 'completion' | 'ambient' | 'both';
 
 export interface ParentSettings {
   defaultDurationSec: number;
@@ -39,6 +41,9 @@ export interface ParentSettings {
   spokenInstructions: boolean;
   ambientSound: AmbientSoundType;
   ambientVolume: number;
+  customSoundDataUrl?: string; // Base64 data URL for uploaded or recorded sound
+  customSoundName?: string;    // Display title of custom audio file
+  customSoundUsage?: CustomSoundUsage; // 'completion' | 'ambient' | 'both'
   animationSpeed: AnimationSpeed;
   visualTheme: VisualTheme;
   largeControls: boolean;

@@ -64,17 +64,17 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
   const [ambientSound, setAmbientSound] = useState<AmbientSoundType>(settings.ambientSound || 'river');
   const [hourglassFill, setHourglassFill] = useState<HourglassFillType>(settings.hourglassFill || 'sand-gold');
 
-  // Start & manage relaxing ambient soundscape (River, Rain, Sea, or None)
+  // Start & manage relaxing ambient soundscape (River, Rain, Sea, Custom, or None)
   useEffect(() => {
     if (ambientSound !== 'none') {
-      startAmbientSound(ambientSound, settings.ambientVolume || 0.35);
+      startAmbientSound(ambientSound, settings.ambientVolume || 0.35, settings.customSoundDataUrl);
     } else {
       stopAmbientSound();
     }
     return () => {
       stopAmbientSound();
     };
-  }, [ambientSound, settings.ambientVolume]);
+  }, [ambientSound, settings.ambientVolume, settings.customSoundDataUrl]);
 
   // References for accurate timing
   const startTimestampRef = useRef<number>(Date.now());
@@ -122,9 +122,11 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
     isCompletedRef.current = true;
     setIsPaused(true);
 
-    // Stop calming background music & play joyful completion melody
+    // Stop calming background music & play joyful completion melody or parent custom voice/sound
     stopAmbientSound();
-    playCompletionChime(settings.soundMode);
+    const customCompletionSound =
+      settings.customSoundUsage !== 'ambient' ? settings.customSoundDataUrl : undefined;
+    playCompletionChime(settings.soundMode, customCompletionSound);
     speakGentlePhrase('All done! Wonderful job sitting!', settings.spokenInstructions);
 
     // Record session
@@ -339,12 +341,15 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
 
         {/* Calming Nature Music Selector & Break Button */}
         <div className="flex items-center gap-1 shrink-0">
-          {/* Nature Music Toggle (River / Rain / Sea / Off) */}
+          {/* Nature Music Toggle (River / Rain / Sea / Custom / Off) */}
           <div className="flex items-center bg-white/85 backdrop-blur-md p-1 rounded-2xl shadow-sm border border-sky-200">
             {[
               { type: 'river' as AmbientSoundType, icon: '🏞️', title: 'River' },
               { type: 'rain' as AmbientSoundType, icon: '🌧️', title: 'Rain' },
               { type: 'sea' as AmbientSoundType, icon: '🌊', title: 'Sea' },
+              ...(settings.customSoundDataUrl
+                ? [{ type: 'custom' as AmbientSoundType, icon: '🎙️', title: settings.customSoundName || 'Custom' }]
+                : []),
               { type: 'none' as AmbientSoundType, icon: '🔇', title: 'Mute' },
             ].map((snd) => (
               <button
