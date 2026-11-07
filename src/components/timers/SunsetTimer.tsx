@@ -34,8 +34,8 @@ export const SunsetTimer: React.FC<TimerModeProps> = ({
 
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-center select-none ${className}`}>
-      <div className="relative w-full max-w-lg aspect-square flex items-center justify-center overflow-hidden rounded-3xl shadow-inner">
-        <svg viewBox="0 0 400 380" className="w-full h-full max-h-[46vh] sm:max-h-[50vh] block" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <div className="relative w-full h-full max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl flex items-center justify-center overflow-hidden rounded-3xl sm:rounded-4xl shadow-inner p-1 sm:p-2">
+        <svg viewBox="0 0 400 380" className="w-full h-full max-h-[58vh] sm:max-h-[62vh] md:max-h-[66vh] lg:max-h-[72vh] block object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             {/* Daytime Sky */}
             <linearGradient id="daySky" x1="0%" y1="0%" x2="0%" y2="100%">

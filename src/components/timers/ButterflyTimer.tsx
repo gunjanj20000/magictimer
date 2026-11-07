@@ -55,8 +55,8 @@ export const ButterflyTimer: React.FC<TimerModeProps> = ({
 
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-center select-none ${className}`}>
-      <div className="relative w-full max-w-lg aspect-square flex items-center justify-center">
-        <svg viewBox="0 0 400 380" className="w-full h-full max-h-[46vh] sm:max-h-[50vh] block" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <div className="relative w-full h-full max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl flex items-center justify-center p-1 sm:p-2">
+        <svg viewBox="0 0 400 380" className="w-full h-full max-h-[58vh] sm:max-h-[62vh] md:max-h-[66vh] lg:max-h-[72vh] block object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Meadow Background */}
           <path d="M 0 310 Q 150 270 300 310 T 400 290 L 400 380 L 0 380 Z" fill="#86EFAC" />
           <path d="M 0 330 Q 200 300 400 330 L 400 380 L 0 380 Z" fill="#4ADE80" />

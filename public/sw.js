@@ -1,9 +1,12 @@
-const CACHE_NAME = 'magic-garden-v2';
+const CACHE_NAME = 'magic-garden-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/favicon.svg'
+  '/favicon.svg',
+  '/apple-touch-icon.png',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 self.addEventListener('message', (event) => {

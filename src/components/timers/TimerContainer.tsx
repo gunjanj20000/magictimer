@@ -504,103 +504,121 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
   return (
     <div className="fixed inset-0 z-40 bg-gradient-to-b from-[#E0F2FE] via-[#F0FDF4] to-[#FEFCE8] flex flex-col justify-between overflow-hidden select-none">
       {/* Top Header Bar: First Activity card (if any) + Checkpoints + Calming Music + Break */}
-      <div className="relative z-20 w-full px-3 py-2 sm:px-6 sm:py-2.5 flex items-center justify-between gap-2 max-w-4xl mx-auto shrink-0">
+      <div className={`relative ${isSoundDropdownOpen ? 'z-50' : 'z-20'} w-full px-2 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between gap-1 sm:gap-2 max-w-5xl mx-auto shrink-0`}>
         {/* FIRST Activity visual badge */}
         {firstActivity ? (
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-white/85 backdrop-blur-md px-2.5 py-1 rounded-2xl shadow-sm border border-pink-100 shrink-0">
-            <span className="text-[10px] sm:text-xs font-black uppercase text-pink-500 tracking-wider">
+          <div className="flex items-center gap-1 sm:gap-1.5 bg-white/85 backdrop-blur-md px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-2xl shadow-sm border border-pink-100 shrink-0">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase text-pink-500 tracking-wider">
               First
             </span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-pink-100 flex items-center justify-center overflow-hidden">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-pink-100 flex items-center justify-center overflow-hidden">
               {firstActivity.customImageDataUrl ? (
                 <img src={firstActivity.customImageDataUrl} alt={firstActivity.title} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-xs">🪑</span>
               )}
             </div>
-            <span className="text-xs font-bold text-slate-700 hidden sm:inline max-w-[110px] truncate">
+            <span className="text-xs font-bold text-slate-700 hidden md:inline max-w-[100px] truncate">
               {firstActivity.title}
             </span>
           </div>
         ) : (
-          <div className="w-2 sm:w-4" />
+          <div className="w-1 sm:w-2" />
         )}
 
         {/* Visual Checkpoints Indicator */}
-        <VisualCheckpoints progress={progress} className="scale-75 sm:scale-85 md:scale-95 origin-center py-1 px-3" />
+        <VisualCheckpoints progress={progress} className="scale-70 xs:scale-75 sm:scale-85 md:scale-95 origin-center py-0.5 px-0.5 sm:px-2 shrink min-w-0" />
 
         {/* Calming Nature & Custom Music Dropdown, Mute & Break Buttons */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* Sound Dropdown Selector */}
-          <div className="relative">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* Unified Sound & Mute Pill */}
+          <div className="relative flex items-center bg-white/90 backdrop-blur-md p-0.5 sm:p-1 rounded-2xl shadow-sm border border-sky-200 shrink-0">
+            {/* Sound Dropdown Toggle */}
             <button
               type="button"
               onClick={() => setIsSoundDropdownOpen(!isSoundDropdownOpen)}
-              className="flex items-center gap-1.5 bg-white/90 hover:bg-white backdrop-blur-md px-2.5 py-1.5 rounded-2xl shadow-sm border border-sky-200 text-xs font-bold text-slate-700 transition-all active:scale-95"
+              className="flex items-center gap-1 px-1.5 py-1 sm:px-2 sm:py-1 rounded-xl hover:bg-sky-50 text-xs font-bold text-slate-700 transition-all active:scale-95"
               title="Choose calming sound"
             >
               <span className="text-sm shrink-0">
                 {currentSoundInfo.icon}
               </span>
-              <span className="hidden xs:inline max-w-[70px] sm:max-w-[105px] truncate text-slate-700 font-extrabold">
+              <span className="hidden sm:inline max-w-[75px] md:max-w-[105px] truncate text-slate-700 font-extrabold text-xs">
                 {currentSoundInfo.label}
               </span>
               <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isSoundDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Dropdown Menu Modal / Overlay */}
+            {/* Subtle Divider */}
+            <div className="w-[1px] h-4 bg-sky-200/80 mx-0.5" />
+
+            {/* Dedicated Quick Mute / Unmute Button */}
+            <button
+              type="button"
+              onClick={handleToggleMute}
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center transition-all active:scale-90 ${
+                ambientSound === 'none'
+                  ? 'bg-rose-100 text-rose-600 hover:bg-rose-200'
+                  : 'text-sky-600 hover:bg-sky-50'
+              }`}
+              title={ambientSound === 'none' ? 'Unmute sound' : 'Mute sound'}
+            >
+              {ambientSound === 'none' ? (
+                <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
+              ) : (
+                <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
+              )}
+            </button>
+
+            {/* Dropdown Menu Modal / Overlay (NO descriptions) */}
             {isSoundDropdownOpen && (
               <>
                 <div
-                  className="fixed inset-0 z-40"
+                  className="fixed inset-0 z-40 bg-black/10"
                   onClick={() => setIsSoundDropdownOpen(false)}
                 />
                 <motion.div
                   initial={{ opacity: 0, y: -4, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-1.5 z-50 w-56 sm:w-64 bg-white rounded-2xl shadow-2xl border border-sky-100 p-2 flex flex-col gap-1 text-xs"
+                  className="absolute right-0 top-full mt-1.5 z-50 w-44 sm:w-52 bg-white rounded-2xl shadow-2xl border-2 border-sky-100 p-1.5 flex flex-col gap-0.5 text-xs select-none"
                 >
                   <div className="px-2 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between">
                     <span>Calming Sounds</span>
                     <span>🎵</span>
                   </div>
 
-                  {/* Nature Sounds */}
+                  {/* Nature Sounds without descriptions */}
                   {[
-                    { id: 'river', label: 'Forest River', icon: '🏞️', desc: 'Babbling brook' },
-                    { id: 'rain', label: 'Gentle Rain', icon: '🌧️', desc: 'Soft rainfall' },
-                    { id: 'sea', label: 'Ocean Waves', icon: '🌊', desc: 'Rhythmic swells' },
+                    { id: 'river', label: 'Forest River', icon: '🏞️' },
+                    { id: 'rain', label: 'Gentle Rain', icon: '🌧️' },
+                    { id: 'sea', label: 'Ocean Waves', icon: '🌊' },
                   ].map((s) => (
                     <button
                       key={s.id}
                       type="button"
                       onClick={() => handleSelectNatureSound(s.id as AmbientSoundType)}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl transition-colors text-left ${
+                      className={`w-full flex items-center justify-between px-2 py-1.5 rounded-xl transition-colors text-left ${
                         ambientSound === s.id
-                          ? 'bg-sky-50 text-sky-900 font-bold border border-sky-200'
-                          : 'hover:bg-slate-50 text-slate-700'
+                          ? 'bg-sky-50 text-sky-900 font-black border border-sky-200'
+                          : 'hover:bg-slate-50 text-slate-700 font-bold'
                       }`}
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-base">{s.icon}</span>
-                        <div className="min-w-0">
-                          <span className="block font-bold leading-tight truncate">{s.label}</span>
-                          <span className="text-[10px] text-slate-400 font-medium block">{s.desc}</span>
-                        </div>
+                        <span className="text-base shrink-0">{s.icon}</span>
+                        <span className="truncate text-xs leading-none">{s.label}</span>
                       </div>
                       {ambientSound === s.id && <Check className="w-4 h-4 text-sky-600 shrink-0" />}
                     </button>
                   ))}
 
-                  {/* Custom Sounds Section (all custom added sounds) */}
+                  {/* Custom Sounds Section (if any, no descriptions) */}
                   {allCustomSounds.length > 0 && (
-                    <div className="mt-1 pt-1.5 border-t border-slate-100">
-                      <div className="px-2 py-1 text-[10px] font-black text-indigo-500 uppercase tracking-wider flex items-center justify-between">
-                        <span>My Custom Sounds</span>
-                        <span>🎙️</span>
+                    <div className="mt-1 pt-1 border-t border-slate-100">
+                      <div className="px-2 py-0.5 text-[10px] font-black text-indigo-500 uppercase tracking-wider">
+                        My Custom Sounds
                       </div>
-                      <div className="max-h-40 overflow-y-auto space-y-1 pr-0.5">
+                      <div className="max-h-36 overflow-y-auto space-y-0.5 pr-0.5">
                         {allCustomSounds.map((cs) => {
                           const isSelected = ambientSound === 'custom' && activeCustomSound?.id === cs.id;
                           return (
@@ -608,18 +626,15 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
                               key={cs.id}
                               type="button"
                               onClick={() => handleSelectCustomSound(cs)}
-                              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl transition-colors text-left ${
+                              className={`w-full flex items-center justify-between px-2 py-1.5 rounded-xl transition-colors text-left ${
                                 isSelected
-                                  ? 'bg-indigo-50 text-indigo-900 font-bold border border-indigo-200'
-                                  : 'hover:bg-slate-50 text-slate-700'
+                                  ? 'bg-indigo-50 text-indigo-900 font-black border border-indigo-200'
+                                  : 'hover:bg-slate-50 text-slate-700 font-bold'
                               }`}
                             >
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className="text-base">🎙️</span>
-                                <div className="min-w-0">
-                                  <span className="block font-bold leading-tight truncate">{cs.name}</span>
-                                  <span className="text-[10px] text-indigo-400 font-medium block">Custom Recording</span>
-                                </div>
+                                <span className="text-base shrink-0">🎙️</span>
+                                <span className="truncate text-xs leading-none">{cs.name}</span>
                               </div>
                               {isSelected && <Check className="w-4 h-4 text-indigo-600 shrink-0" />}
                             </button>
@@ -637,18 +652,15 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
                         setAmbientSound('none');
                         setIsSoundDropdownOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl transition-colors text-left ${
+                      className={`w-full flex items-center justify-between px-2 py-1.5 rounded-xl transition-colors text-left ${
                         ambientSound === 'none'
-                          ? 'bg-rose-50 text-rose-900 font-bold border border-rose-200'
-                          : 'hover:bg-slate-50 text-slate-500'
+                          ? 'bg-rose-50 text-rose-900 font-black border border-rose-200'
+                          : 'hover:bg-slate-50 text-slate-500 font-bold'
                       }`}
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-base">🔇</span>
-                        <div className="min-w-0">
-                          <span className="block font-bold leading-tight">Mute / No Music</span>
-                          <span className="text-[10px] text-slate-400 font-medium block">Silent background</span>
-                        </div>
+                        <span className="text-base shrink-0">🔇</span>
+                        <span className="text-xs leading-none">Mute / Silent</span>
                       </div>
                       {ambientSound === 'none' && <Check className="w-4 h-4 text-rose-600 shrink-0" />}
                     </button>
@@ -657,24 +669,6 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
               </>
             )}
           </div>
-
-          {/* Quick Mute / Unmute Button */}
-          <button
-            type="button"
-            onClick={handleToggleMute}
-            className={`w-8 h-8 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 ${
-              ambientSound === 'none'
-                ? 'bg-rose-50 hover:bg-rose-100 text-rose-500 border border-rose-200'
-                : 'bg-white/90 hover:bg-white text-sky-600 border border-sky-200'
-            }`}
-            title={ambientSound === 'none' ? 'Unmute sound' : 'Mute sound'}
-          >
-            {ambientSound === 'none' ? (
-              <VolumeX className="w-4 h-4" />
-            ) : (
-              <Volume2 className="w-4 h-4" />
-            )}
-          </button>
 
           {/* Break Button (if enabled) */}
           {settings.allowVisualBreak && (
@@ -692,7 +686,7 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
       </div>
 
       {/* Dedicated Clocks Row: Big Digital Clock + Round Clock side by side (No Overlap) */}
-      <div className="relative z-20 w-full flex items-center justify-center my-0.5 sm:my-1 px-2 shrink-0">
+      <div className="relative z-10 w-full flex items-center justify-center my-1 sm:my-2 px-2 shrink-0">
         <TimerWatch
           progress={progress}
           elapsedMs={elapsedMs}

@@ -45,21 +45,21 @@ export const TimerWatch: React.FC<TimerWatchProps> = ({
 
   return (
     <div
-      className={`relative select-none flex items-center justify-center gap-3 sm:gap-5 transition-all ${className}`}
+      className={`relative select-none flex items-center justify-center gap-3 sm:gap-6 md:gap-8 transition-all ${className}`}
       title={`Time Remaining: ${timeFormatted}`}
     >
-      {/* 1. EXTRA-LARGE DIGITAL CLOCK - Prominently visible to kid */}
-      <div className="flex items-center justify-center px-4 py-1.5 sm:px-6 sm:py-2.5 rounded-3xl bg-white/90 backdrop-blur-md border-3 sm:border-4 border-amber-300 shadow-md">
-        <span className="font-mono sm:font-sans font-black text-4xl sm:text-5xl md:text-6xl text-slate-800 tracking-wider tabular-nums leading-none">
+      {/* 1. EXTRA-LARGE DIGITAL CLOCK - Prominently visible to kid across room & on iPad */}
+      <div className="flex items-center justify-center px-4 py-1.5 sm:px-6 sm:py-2.5 md:px-8 md:py-3.5 lg:px-10 lg:py-4 rounded-3xl sm:rounded-4xl bg-white/95 backdrop-blur-md border-3 sm:border-4 md:border-5 border-amber-300 shadow-lg ring-2 ring-amber-200/50">
+        <span className="font-mono sm:font-sans font-black text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-slate-800 tracking-wider tabular-nums leading-none">
           {timeFormatted}
         </span>
       </div>
 
       {/* 2. ROUND CLOCK - Analog visual countdown pie wedge right next to digital clock */}
-      <div className="relative flex items-center justify-center shrink-0 filter drop-shadow-md">
+      <div className="relative flex items-center justify-center shrink-0 filter drop-shadow-lg">
         <svg
           viewBox="0 0 120 128"
-          className="w-16 h-18 sm:w-20 sm:h-22 md:w-24 md:h-26 block"
+          className="w-16 h-18 xs:w-20 xs:h-22 sm:w-24 sm:h-26 md:w-32 md:h-34 lg:w-36 lg:h-40 block"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >

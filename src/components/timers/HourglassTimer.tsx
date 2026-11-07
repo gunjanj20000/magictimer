@@ -134,8 +134,8 @@ export const HourglassTimer: React.FC<HourglassTimerProps> = ({
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-center select-none ${className}`}>
       {/* Main Hourglass Illustration Container */}
-      <div className="relative w-full max-w-[330px] sm:max-w-sm aspect-[380/400] flex items-center justify-center my-auto">
-        <svg viewBox="0 0 380 400" className="w-full h-full max-h-[44vh] sm:max-h-[48vh] block" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <div className="relative w-full h-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl flex items-center justify-center my-auto p-1 sm:p-2">
+        <svg viewBox="0 0 380 400" className="w-full h-full max-h-[56vh] sm:max-h-[60vh] md:max-h-[65vh] lg:max-h-[70vh] block object-contain" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             {/* Hourglass Frame Wood/Gold Gradients */}
             <linearGradient id="hgFrameGrad" x1="0%" y1="0%" x2="100%" y2="0%">
