@@ -29,6 +29,14 @@ export type AmbientSoundType = 'none' | 'river' | 'rain' | 'sea' | 'custom';
 
 export type CustomSoundUsage = 'completion' | 'ambient' | 'both';
 
+export interface CustomSoundItem {
+  id: string;
+  name: string;
+  dataUrl: string;
+  usage: CustomSoundUsage;
+  createdAt: number;
+}
+
 export interface ParentSettings {
   defaultDurationSec: number;
   availablePresets: number[]; // e.g. [30, 60, 120, 180, 300, 600, 900, 1200, 1800]
@@ -44,6 +52,7 @@ export interface ParentSettings {
   customSoundDataUrl?: string; // Base64 data URL for uploaded or recorded sound
   customSoundName?: string;    // Display title of custom audio file
   customSoundUsage?: CustomSoundUsage; // 'completion' | 'ambient' | 'both'
+  customSounds?: CustomSoundItem[];   // List of all custom added sounds
   animationSpeed: AnimationSpeed;
   visualTheme: VisualTheme;
   largeControls: boolean;

@@ -256,8 +256,12 @@ export function startAmbientSound(type: AmbientSoundType, volume = 0.35, customA
       return;
     }
     if (activeCustomAmbientAudio) {
-      activeCustomAmbientAudio.volume = Math.max(0.05, Math.min(1.0, volume));
-      return;
+      if (activeCustomAmbientAudio.src === customAudioUrl) {
+        activeCustomAmbientAudio.volume = Math.max(0.05, Math.min(1.0, volume));
+        return;
+      }
+      activeCustomAmbientAudio.pause();
+      activeCustomAmbientAudio = null;
     }
     stopAmbientSound();
     try {

@@ -19,6 +19,7 @@ export const DEFAULT_SETTINGS: ParentSettings = {
   customSoundDataUrl: undefined,
   customSoundName: undefined,
   customSoundUsage: 'completion',
+  customSounds: [],
   animationSpeed: 'normal',
   visualTheme: 'pastel',
   largeControls: false,

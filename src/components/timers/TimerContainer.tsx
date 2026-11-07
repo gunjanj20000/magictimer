@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   TimerMode,
@@ -8,6 +8,7 @@ import {
   GardenReward,
   AmbientSoundType,
   HourglassFillType,
+  CustomSoundItem,
 } from '../../types';
 import { MagicGardenTimer } from './MagicGardenTimer';
 import { RainbowTimer } from './RainbowTimer';
@@ -31,7 +32,7 @@ import {
   stopAmbientSound,
 } from '../../services/audio';
 import { saveSessionRecord, saveReward } from '../../services/storage';
-import { Pause, Play, X, Coffee, Lock } from 'lucide-react';
+import { Pause, Play, X, Coffee, Lock, ChevronDown, Volume2, VolumeX, Check } from 'lucide-react';
 
 interface TimerContainerProps {
   durationSec: number;
@@ -64,17 +65,102 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
   const [ambientSound, setAmbientSound] = useState<AmbientSoundType>(settings.ambientSound || 'river');
   const [hourglassFill, setHourglassFill] = useState<HourglassFillType>(settings.hourglassFill || 'sand-gold');
 
+  // Collect all custom sounds (both from settings.customSounds and legacy settings.customSoundDataUrl)
+  const allCustomSounds = useMemo<CustomSoundItem[]>(() => {
+    const list = [...(settings.customSounds || [])];
+    if (
+      settings.customSoundDataUrl &&
+      !list.some((s) => s.dataUrl === settings.customSoundDataUrl)
+    ) {
+      list.unshift({
+        id: 'snd_default',
+        name: settings.customSoundName || 'Custom Audio',
+        dataUrl: settings.customSoundDataUrl,
+        usage: settings.customSoundUsage || 'both',
+        createdAt: 0,
+      });
+    }
+    return list;
+  }, [settings.customSounds, settings.customSoundDataUrl, settings.customSoundName, settings.customSoundUsage]);
+
+  const [activeCustomSound, setActiveCustomSound] = useState<CustomSoundItem | null>(() => {
+    return allCustomSounds[0] || null;
+  });
+  const [isSoundDropdownOpen, setIsSoundDropdownOpen] = useState(false);
+
+  // Remember last non-muted sound for the quick mute toggle
+  const lastActiveSoundRef = useRef<{
+    type: AmbientSoundType;
+    customSound: CustomSoundItem | null;
+  }>({
+    type: settings.ambientSound && settings.ambientSound !== 'none' ? settings.ambientSound : 'river',
+    customSound: allCustomSounds[0] || null,
+  });
+
   // Start & manage relaxing ambient soundscape (River, Rain, Sea, Custom, or None)
   useEffect(() => {
     if (ambientSound !== 'none') {
-      startAmbientSound(ambientSound, settings.ambientVolume || 0.35, settings.customSoundDataUrl);
+      const customUrl = ambientSound === 'custom' ? activeCustomSound?.dataUrl : undefined;
+      startAmbientSound(ambientSound, settings.ambientVolume || 0.35, customUrl);
     } else {
       stopAmbientSound();
     }
     return () => {
       stopAmbientSound();
     };
-  }, [ambientSound, settings.ambientVolume, settings.customSoundDataUrl]);
+  }, [ambientSound, settings.ambientVolume, activeCustomSound]);
+
+  const currentSoundInfo = useMemo(() => {
+    if (ambientSound === 'none') {
+      return { icon: '🔇', label: 'Muted' };
+    }
+    if (ambientSound === 'river') {
+      return { icon: '🏞️', label: 'River' };
+    }
+    if (ambientSound === 'rain') {
+      return { icon: '🌧️', label: 'Rain' };
+    }
+    if (ambientSound === 'sea') {
+      return { icon: '🌊', label: 'Sea' };
+    }
+    if (ambientSound === 'custom') {
+      return { icon: '🎙️', label: activeCustomSound?.name || 'Custom' };
+    }
+    return { icon: '🎵', label: 'Sound' };
+  }, [ambientSound, activeCustomSound]);
+
+  const handleSelectNatureSound = (type: AmbientSoundType) => {
+    lastActiveSoundRef.current = { type, customSound: activeCustomSound };
+    setAmbientSound(type);
+    setIsSoundDropdownOpen(false);
+  };
+
+  const handleSelectCustomSound = (sound: CustomSoundItem) => {
+    lastActiveSoundRef.current = { type: 'custom', customSound: sound };
+    setActiveCustomSound(sound);
+    setAmbientSound('custom');
+    setIsSoundDropdownOpen(false);
+  };
+
+  const handleToggleMute = () => {
+    if (ambientSound !== 'none') {
+      lastActiveSoundRef.current = {
+        type: ambientSound,
+        customSound: activeCustomSound,
+      };
+      setAmbientSound('none');
+    } else {
+      const prev = lastActiveSoundRef.current;
+      if (prev.type === 'custom' && prev.customSound) {
+        setActiveCustomSound(prev.customSound);
+        setAmbientSound('custom');
+      } else if (prev.type !== 'none') {
+        setAmbientSound(prev.type);
+      } else {
+        setAmbientSound('river');
+      }
+    }
+  };
 
   // References for accurate timing
   const startTimestampRef = useRef<number>(Date.now());
@@ -125,7 +211,9 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
     // Stop calming background music & play joyful completion melody or parent custom voice/sound
     stopAmbientSound();
     const customCompletionSound =
-      settings.customSoundUsage !== 'ambient' ? settings.customSoundDataUrl : undefined;
+      settings.customSoundUsage !== 'ambient'
+        ? activeCustomSound?.dataUrl || settings.customSoundDataUrl
+        : undefined;
     playCompletionChime(settings.soundMode, customCompletionSound);
     speakGentlePhrase('All done! Wonderful job sitting!', settings.spokenInstructions);
 
@@ -441,33 +529,152 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
         {/* Visual Checkpoints Indicator */}
         <VisualCheckpoints progress={progress} className="scale-75 sm:scale-85 md:scale-95 origin-center py-1 px-3" />
 
-        {/* Calming Nature Music Selector & Break Button */}
-        <div className="flex items-center gap-1 shrink-0">
-          {/* Nature Music Toggle (River / Rain / Sea / Custom / Off) */}
-          <div className="flex items-center bg-white/85 backdrop-blur-md p-1 rounded-2xl shadow-sm border border-sky-200">
-            {[
-              { type: 'river' as AmbientSoundType, icon: '🏞️', title: 'River' },
-              { type: 'rain' as AmbientSoundType, icon: '🌧️', title: 'Rain' },
-              { type: 'sea' as AmbientSoundType, icon: '🌊', title: 'Sea' },
-              ...(settings.customSoundDataUrl
-                ? [{ type: 'custom' as AmbientSoundType, icon: '🎙️', title: settings.customSoundName || 'Custom' }]
-                : []),
-              { type: 'none' as AmbientSoundType, icon: '🔇', title: 'Mute' },
-            ].map((snd) => (
-              <button
-                key={snd.type}
-                onClick={() => setAmbientSound(snd.type)}
-                className={`w-6 h-6 sm:w-7 sm:h-7 rounded-xl flex items-center justify-center text-xs transition-all ${
-                  ambientSound === snd.type
-                    ? 'bg-sky-400 text-white shadow-sm scale-105'
-                    : 'text-slate-400 hover:text-slate-700'
-                }`}
-                title={`Sound: ${snd.title}`}
-              >
-                <span>{snd.icon}</span>
-              </button>
-            ))}
+        {/* Calming Nature & Custom Music Dropdown, Mute & Break Buttons */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Sound Dropdown Selector */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsSoundDropdownOpen(!isSoundDropdownOpen)}
+              className="flex items-center gap-1.5 bg-white/90 hover:bg-white backdrop-blur-md px-2.5 py-1.5 rounded-2xl shadow-sm border border-sky-200 text-xs font-bold text-slate-700 transition-all active:scale-95"
+              title="Choose calming sound"
+            >
+              <span className="text-sm shrink-0">
+                {currentSoundInfo.icon}
+              </span>
+              <span className="hidden xs:inline max-w-[70px] sm:max-w-[105px] truncate text-slate-700 font-extrabold">
+                {currentSoundInfo.label}
+              </span>
+              <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isSoundDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Dropdown Menu Modal / Overlay */}
+            {isSoundDropdownOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsSoundDropdownOpen(false)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                  className="absolute right-0 top-full mt-1.5 z-50 w-56 sm:w-64 bg-white rounded-2xl shadow-2xl border border-sky-100 p-2 flex flex-col gap-1 text-xs"
+                >
+                  <div className="px-2 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                    <span>Calming Sounds</span>
+                    <span>🎵</span>
+                  </div>
+
+                  {/* Nature Sounds */}
+                  {[
+                    { id: 'river', label: 'Forest River', icon: '🏞️', desc: 'Babbling brook' },
+                    { id: 'rain', label: 'Gentle Rain', icon: '🌧️', desc: 'Soft rainfall' },
+                    { id: 'sea', label: 'Ocean Waves', icon: '🌊', desc: 'Rhythmic swells' },
+                  ].map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => handleSelectNatureSound(s.id as AmbientSoundType)}
+                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl transition-colors text-left ${
+                        ambientSound === s.id
+                          ? 'bg-sky-50 text-sky-900 font-bold border border-sky-200'
+                          : 'hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-base">{s.icon}</span>
+                        <div className="min-w-0">
+                          <span className="block font-bold leading-tight truncate">{s.label}</span>
+                          <span className="text-[10px] text-slate-400 font-medium block">{s.desc}</span>
+                        </div>
+                      </div>
+                      {ambientSound === s.id && <Check className="w-4 h-4 text-sky-600 shrink-0" />}
+                    </button>
+                  ))}
+
+                  {/* Custom Sounds Section (all custom added sounds) */}
+                  {allCustomSounds.length > 0 && (
+                    <div className="mt-1 pt-1.5 border-t border-slate-100">
+                      <div className="px-2 py-1 text-[10px] font-black text-indigo-500 uppercase tracking-wider flex items-center justify-between">
+                        <span>My Custom Sounds</span>
+                        <span>🎙️</span>
+                      </div>
+                      <div className="max-h-40 overflow-y-auto space-y-1 pr-0.5">
+                        {allCustomSounds.map((cs) => {
+                          const isSelected = ambientSound === 'custom' && activeCustomSound?.id === cs.id;
+                          return (
+                            <button
+                              key={cs.id}
+                              type="button"
+                              onClick={() => handleSelectCustomSound(cs)}
+                              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl transition-colors text-left ${
+                                isSelected
+                                  ? 'bg-indigo-50 text-indigo-900 font-bold border border-indigo-200'
+                                  : 'hover:bg-slate-50 text-slate-700'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-base">🎙️</span>
+                                <div className="min-w-0">
+                                  <span className="block font-bold leading-tight truncate">{cs.name}</span>
+                                  <span className="text-[10px] text-indigo-400 font-medium block">Custom Recording</span>
+                                </div>
+                              </div>
+                              {isSelected && <Check className="w-4 h-4 text-indigo-600 shrink-0" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mute option inside dropdown */}
+                  <div className="mt-1 pt-1 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAmbientSound('none');
+                        setIsSoundDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl transition-colors text-left ${
+                        ambientSound === 'none'
+                          ? 'bg-rose-50 text-rose-900 font-bold border border-rose-200'
+                          : 'hover:bg-slate-50 text-slate-500'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-base">🔇</span>
+                        <div className="min-w-0">
+                          <span className="block font-bold leading-tight">Mute / No Music</span>
+                          <span className="text-[10px] text-slate-400 font-medium block">Silent background</span>
+                        </div>
+                      </div>
+                      {ambientSound === 'none' && <Check className="w-4 h-4 text-rose-600 shrink-0" />}
+                    </button>
+                  </div>
+                </motion.div>
+              </>
+            )}
           </div>
+
+          {/* Quick Mute / Unmute Button */}
+          <button
+            type="button"
+            onClick={handleToggleMute}
+            className={`w-8 h-8 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 ${
+              ambientSound === 'none'
+                ? 'bg-rose-50 hover:bg-rose-100 text-rose-500 border border-rose-200'
+                : 'bg-white/90 hover:bg-white text-sky-600 border border-sky-200'
+            }`}
+            title={ambientSound === 'none' ? 'Unmute sound' : 'Mute sound'}
+          >
+            {ambientSound === 'none' ? (
+              <VolumeX className="w-4 h-4" />
+            ) : (
+              <Volume2 className="w-4 h-4" />
+            )}
+          </button>
 
           {/* Break Button (if enabled) */}
           {settings.allowVisualBreak && (

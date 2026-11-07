@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { ParentSettings, SessionRecord, HourglassFillType, CustomSoundUsage } from '../../types';
+import React, { useState, useRef, useMemo } from 'react';
+import { ParentSettings, SessionRecord, HourglassFillType, CustomSoundUsage, CustomSoundItem } from '../../types';
 import { TimerModePreview } from './TimerModePreview';
 import { SessionHistoryView } from './SessionHistoryView';
 import { CHARACTER_META } from '../characters/CharacterAvatar';
@@ -48,8 +48,26 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordIntervalRef = useRef<number | null>(null);
-  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const [previewingSoundId, setPreviewingSoundId] = useState<string | null>(null);
   const stopPreviewCallbackRef = useRef<(() => void) | null>(null);
+
+  // All custom sounds list (combining customSounds array and legacy customSoundDataUrl)
+  const allCustomSounds = useMemo<CustomSoundItem[]>(() => {
+    const list = [...(settings.customSounds || [])];
+    if (
+      settings.customSoundDataUrl &&
+      !list.some((s) => s.dataUrl === settings.customSoundDataUrl)
+    ) {
+      list.unshift({
+        id: 'snd_default',
+        name: settings.customSoundName || 'Custom Audio',
+        dataUrl: settings.customSoundDataUrl,
+        usage: settings.customSoundUsage || 'both',
+        createdAt: 0,
+      });
+    }
+    return list;
+  }, [settings.customSounds, settings.customSoundDataUrl, settings.customSoundName, settings.customSoundUsage]);
 
   // Upload file handler
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,10 +77,21 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
+      const newSound: CustomSoundItem = {
+        id: 'snd_' + Date.now(),
+        name: file.name,
+        dataUrl: result,
+        usage: 'both',
+        createdAt: Date.now(),
+      };
+      const existing = settings.customSounds || [];
+      const updatedList = [newSound, ...existing.filter((s) => s.dataUrl !== result)];
       const updated = {
         ...settings,
         customSoundDataUrl: result,
         customSoundName: file.name,
+        customSoundUsage: 'both' as const,
+        customSounds: updatedList,
       };
       setSettings(updated);
       onSaveSettings(updated);
@@ -91,10 +120,22 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64 = reader.result as string;
+          const recordingName = `Voice_${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          const newSound: CustomSoundItem = {
+            id: 'snd_' + Date.now(),
+            name: recordingName,
+            dataUrl: base64,
+            usage: 'both',
+            createdAt: Date.now(),
+          };
+          const existing = settings.customSounds || [];
+          const updatedList = [newSound, ...existing];
           const updated = {
             ...settings,
             customSoundDataUrl: base64,
-            customSoundName: `Voice_Recording_${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+            customSoundName: recordingName,
+            customSoundUsage: 'both' as const,
+            customSounds: updatedList,
           };
           setSettings(updated);
           onSaveSettings(updated);
@@ -132,40 +173,61 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   };
 
   // Play / Stop Custom Sound Preview
-  const handleTogglePreview = () => {
-    if (isPlayingPreview) {
+  const handleTogglePreviewSound = (sound: CustomSoundItem) => {
+    if (previewingSoundId === sound.id) {
       if (stopPreviewCallbackRef.current) {
         stopPreviewCallbackRef.current();
         stopPreviewCallbackRef.current = null;
       }
       stopCustomSoundPreview();
-      setIsPlayingPreview(false);
+      setPreviewingSoundId(null);
     } else {
-      if (settings.customSoundDataUrl) {
-        setIsPlayingPreview(true);
-        stopPreviewCallbackRef.current = testPlayCustomSound(settings.customSoundDataUrl, () => {
-          setIsPlayingPreview(false);
-          stopPreviewCallbackRef.current = null;
-        });
+      if (stopPreviewCallbackRef.current) {
+        stopPreviewCallbackRef.current();
+        stopPreviewCallbackRef.current = null;
       }
+      stopCustomSoundPreview();
+      setPreviewingSoundId(sound.id);
+      stopPreviewCallbackRef.current = testPlayCustomSound(sound.dataUrl, () => {
+        setPreviewingSoundId(null);
+        stopPreviewCallbackRef.current = null;
+      });
     }
   };
 
   // Remove Custom Sound
-  const handleRemoveCustomSound = () => {
-    if (isPlayingPreview) {
+  const handleRemoveCustomSound = (id: string) => {
+    if (previewingSoundId === id) {
       stopCustomSoundPreview();
-      setIsPlayingPreview(false);
+      setPreviewingSoundId(null);
     }
+    const current = settings.customSounds || [];
+    const updatedList = current.filter((s) => s.id !== id);
+    const nextActive = updatedList[0];
     const updated = {
       ...settings,
-      customSoundDataUrl: undefined,
-      customSoundName: undefined,
+      customSounds: updatedList,
+      customSoundDataUrl: nextActive?.dataUrl,
+      customSoundName: nextActive?.name,
+      customSoundUsage: nextActive?.usage || 'completion',
     };
     setSettings(updated);
     onSaveSettings(updated);
     setSavedToast(true);
     setTimeout(() => setSavedToast(false), 2000);
+  };
+
+  const handleUpdateSoundUsage = (id: string, usage: CustomSoundUsage) => {
+    const updatedList = (settings.customSounds || []).map((s) =>
+      s.id === id ? { ...s, usage } : s
+    );
+    const updated = {
+      ...settings,
+      customSounds: updatedList,
+      customSoundUsage: id === (settings.customSounds?.[0]?.id) ? usage : settings.customSoundUsage,
+    };
+    setSettings(updated);
+    onSaveSettings(updated);
   };
 
   const handleUpdateCode = async () => {
@@ -587,83 +649,93 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 </label>
               </div>
 
-              {/* Active Custom Sound Card */}
-              {settings.customSoundDataUrl ? (
-                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-2xl border border-indigo-200 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-2xl shrink-0">🎵</span>
-                      <div className="min-w-0">
-                        <span className="text-xs font-black text-indigo-900 block truncate">
-                          {settings.customSoundName || 'Custom Audio'}
-                        </span>
-                        <span className="text-[10px] text-indigo-500 font-medium">
-                          Saved in settings (available offline)
-                        </span>
+              {/* Active Custom Sounds List */}
+              {allCustomSounds.length > 0 ? (
+                <div className="space-y-3">
+                  {allCustomSounds.map((snd) => {
+                    const isPlaying = previewingSoundId === snd.id;
+                    return (
+                      <div
+                        key={snd.id}
+                        className="bg-gradient-to-r from-purple-50 to-indigo-50 p-4 rounded-2xl border border-indigo-200 shadow-sm space-y-3"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-2xl shrink-0">🎙️</span>
+                            <div className="min-w-0">
+                              <span className="text-xs font-black text-indigo-900 block truncate">
+                                {snd.name}
+                              </span>
+                              <span className="text-[10px] text-indigo-500 font-medium">
+                                Saved in settings (available offline)
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleTogglePreviewSound(snd)}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs shadow-sm transition-all ${
+                                isPlaying
+                                  ? 'bg-rose-500 text-white animate-pulse'
+                                  : 'bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95'
+                              }`}
+                            >
+                              {isPlaying ? (
+                                <>
+                                  <Square className="w-3.5 h-3.5 fill-white" />
+                                  <span>Stop</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="w-3.5 h-3.5 fill-white" />
+                                  <span>Play Test</span>
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCustomSound(snd.id)}
+                              className="p-1.5 rounded-xl bg-white/80 hover:bg-rose-50 border border-slate-200 text-slate-500 hover:text-rose-600 transition-colors"
+                              title="Remove custom sound"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Usage Options */}
+                        <div className="pt-2 border-t border-indigo-100">
+                          <span className="text-xs font-bold text-indigo-800 block mb-1.5">
+                            When should this sound play?
+                          </span>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {[
+                              { id: 'completion' as CustomSoundUsage, label: '🎉 Completion', desc: 'When time is up' },
+                              { id: 'ambient' as CustomSoundUsage, label: '🎶 Background', desc: 'Calming loop' },
+                              { id: 'both' as CustomSoundUsage, label: '✨ Both', desc: 'Loop & celebration' },
+                            ].map((u) => (
+                              <button
+                                key={u.id}
+                                type="button"
+                                onClick={() => handleUpdateSoundUsage(snd.id, u.id)}
+                                className={`p-2 rounded-xl border text-center transition-all ${
+                                  (snd.usage || 'both') === u.id
+                                    ? 'bg-indigo-500 text-white border-indigo-600 font-black shadow-sm'
+                                    : 'bg-white border-indigo-100 text-indigo-900 font-medium hover:bg-indigo-50/50'
+                                }`}
+                              >
+                                <span className="block text-xs font-bold">{u.label}</span>
+                                <span className="text-[9px] opacity-80 block">{u.desc}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={handleTogglePreview}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs shadow-sm transition-all ${
-                          isPlayingPreview
-                            ? 'bg-rose-500 text-white animate-pulse'
-                            : 'bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95'
-                        }`}
-                      >
-                        {isPlayingPreview ? (
-                          <>
-                            <Square className="w-3.5 h-3.5 fill-white" />
-                            <span>Stop</span>
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-3.5 h-3.5 fill-white" />
-                            <span>Play Test</span>
-                          </>
-                        )}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleRemoveCustomSound}
-                        className="p-1.5 rounded-xl bg-white/80 hover:bg-rose-50 border border-slate-200 text-slate-500 hover:text-rose-600 transition-colors"
-                        title="Remove custom sound"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Usage Options */}
-                  <div className="pt-2 border-t border-indigo-100">
-                    <span className="text-xs font-bold text-indigo-800 block mb-1.5">
-                      When should this sound play?
-                    </span>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {[
-                        { id: 'completion' as CustomSoundUsage, label: '🎉 Completion Alert', desc: 'Plays when time is up' },
-                        { id: 'ambient' as CustomSoundUsage, label: '🎶 Background Loop', desc: 'Continuous calming loop' },
-                        { id: 'both' as CustomSoundUsage, label: '✨ Both Loop & Alert', desc: 'Loops & celebrates' },
-                      ].map((u) => (
-                        <button
-                          key={u.id}
-                          type="button"
-                          onClick={() => updateSetting('customSoundUsage', u.id)}
-                          className={`p-2 rounded-xl border text-center transition-all ${
-                            (settings.customSoundUsage || 'completion') === u.id
-                              ? 'bg-indigo-500 text-white border-indigo-600 font-black shadow-sm'
-                              : 'bg-white border-indigo-100 text-indigo-900 font-medium hover:bg-indigo-50/50'
-                          }`}
-                        >
-                          <span className="block text-xs font-bold">{u.label}</span>
-                          <span className="text-[9px] opacity-80 block">{u.desc}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="p-3 rounded-2xl bg-slate-50 border border-dashed border-slate-300 text-center">
