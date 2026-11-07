@@ -133,37 +133,9 @@ export const HourglassTimer: React.FC<HourglassTimerProps> = ({
 
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-center select-none ${className}`}>
-      {/* Quick Item & Color Palette Switcher */}
-      {onSelectFillType && (
-        <div className="flex items-center gap-1 sm:gap-2 mb-2 z-20 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm border border-slate-200">
-          <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mr-1">
-            Fill:
-          </span>
-          {(Object.keys(HOURGLASS_FILL_CONFIGS) as HourglassFillType[]).map((key) => {
-            const item = HOURGLASS_FILL_CONFIGS[key];
-            const isSelected = fillType === key;
-            return (
-              <button
-                key={key}
-                onClick={() => onSelectFillType(key)}
-                className={`flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-bold transition-all ${
-                  isSelected
-                    ? `${item.badgeColor} border shadow-sm scale-105 font-black ring-2 ring-amber-300`
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                }`}
-                title={item.label}
-              >
-                <span>{item.icon}</span>
-                <span className="hidden sm:inline">{item.label.split(' ')[0]}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {/* Main Hourglass Illustration Container */}
-      <div className="relative w-full max-w-md aspect-square flex items-center justify-center">
-        <svg viewBox="0 0 380 400" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <div className="relative w-full max-w-[330px] sm:max-w-sm aspect-[380/400] flex items-center justify-center my-auto">
+        <svg viewBox="0 0 380 400" className="w-full h-full max-h-[44vh] sm:max-h-[48vh] block" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             {/* Hourglass Frame Wood/Gold Gradients */}
             <linearGradient id="hgFrameGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -406,6 +378,34 @@ export const HourglassTimer: React.FC<HourglassTimerProps> = ({
           />
         </div>
       </div>
+
+      {/* Quick Item & Color Palette Switcher - Placed cleanly BELOW the hourglass */}
+      {onSelectFillType && (
+        <div className="flex items-center gap-1 sm:gap-2 mt-2 z-20 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-sm border border-amber-200">
+          <span className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mr-1">
+            Fill:
+          </span>
+          {(Object.keys(HOURGLASS_FILL_CONFIGS) as HourglassFillType[]).map((key) => {
+            const item = HOURGLASS_FILL_CONFIGS[key];
+            const isSelected = fillType === key;
+            return (
+              <button
+                key={key}
+                onClick={() => onSelectFillType(key)}
+                className={`flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-bold transition-all ${
+                  isSelected
+                    ? `${item.badgeColor} border shadow-sm scale-105 font-black ring-2 ring-amber-300`
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                }`}
+                title={item.label}
+              >
+                <span>{item.icon}</span>
+                <span className="hidden sm:inline">{item.label.split(' ')[0]}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

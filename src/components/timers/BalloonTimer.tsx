@@ -31,7 +31,7 @@ export const BalloonTimer: React.FC<TimerModeProps> = ({
   return (
     <div className={`relative w-full h-full flex flex-col items-center justify-center select-none ${className}`}>
       <div className="relative w-full max-w-lg aspect-square flex items-center justify-center">
-        <svg viewBox="0 0 400 380" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 400 380" className="w-full h-full max-h-[46vh] sm:max-h-[50vh] block" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="skyGradBalloon" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#BAE6FD" />

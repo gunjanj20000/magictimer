@@ -312,33 +312,33 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
   return (
     <div className="fixed inset-0 z-40 bg-gradient-to-b from-[#E0F2FE] via-[#F0FDF4] to-[#FEFCE8] flex flex-col justify-between overflow-hidden select-none">
       {/* Top Header Bar: First Activity card (if any) + Checkpoints + Calming Music + Break */}
-      <div className="relative z-20 w-full p-2.5 sm:p-5 flex items-center justify-between gap-2 max-w-5xl mx-auto pr-32 sm:pr-44 md:pr-48">
+      <div className="relative z-20 w-full px-3 py-2 sm:px-6 sm:py-2.5 flex items-center justify-between gap-2 max-w-4xl mx-auto shrink-0">
         {/* FIRST Activity visual badge */}
         {firstActivity ? (
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-white/85 backdrop-blur-md px-2 py-1 sm:px-3.5 sm:py-2 rounded-2xl shadow-sm border border-pink-100">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-white/85 backdrop-blur-md px-2.5 py-1 rounded-2xl shadow-sm border border-pink-100 shrink-0">
             <span className="text-[10px] sm:text-xs font-black uppercase text-pink-500 tracking-wider">
               First
             </span>
-            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-xl bg-pink-100 flex items-center justify-center overflow-hidden">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-xl bg-pink-100 flex items-center justify-center overflow-hidden">
               {firstActivity.customImageDataUrl ? (
                 <img src={firstActivity.customImageDataUrl} alt={firstActivity.title} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-xs sm:text-base">🪑</span>
+                <span className="text-xs">🪑</span>
               )}
             </div>
-            <span className="text-xs sm:text-sm font-bold text-slate-700 hidden sm:inline">
+            <span className="text-xs font-bold text-slate-700 hidden sm:inline max-w-[110px] truncate">
               {firstActivity.title}
             </span>
           </div>
         ) : (
-          <div />
+          <div className="w-2 sm:w-4" />
         )}
 
         {/* Visual Checkpoints Indicator */}
-        <VisualCheckpoints progress={progress} className="scale-70 sm:scale-90 md:scale-100 origin-center" />
+        <VisualCheckpoints progress={progress} className="scale-75 sm:scale-85 md:scale-95 origin-center py-1 px-3" />
 
         {/* Calming Nature Music Selector & Break Button */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 shrink-0">
           {/* Nature Music Toggle (River / Rain / Sea / Off) */}
           <div className="flex items-center bg-white/85 backdrop-blur-md p-1 rounded-2xl shadow-sm border border-sky-200">
             {[
@@ -350,7 +350,7 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
               <button
                 key={snd.type}
                 onClick={() => setAmbientSound(snd.type)}
-                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-xs sm:text-sm transition-all ${
+                className={`w-6 h-6 sm:w-7 sm:h-7 rounded-xl flex items-center justify-center text-xs transition-all ${
                   ambientSound === snd.type
                     ? 'bg-sky-400 text-white shadow-sm scale-105'
                     : 'text-slate-400 hover:text-slate-700'
@@ -367,7 +367,7 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
             <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={handleTriggerBreak}
-              className="flex items-center gap-1 bg-white/85 hover:bg-white backdrop-blur-md px-2 py-1.5 sm:px-3 sm:py-2 rounded-2xl shadow-sm border border-amber-200 text-amber-700 font-bold text-xs active:bg-amber-50"
+              className="flex items-center gap-1 bg-white/85 hover:bg-white backdrop-blur-md px-2 py-1 rounded-2xl shadow-sm border border-amber-200 text-amber-700 font-bold text-xs active:bg-amber-50"
               title="Take a gentle break"
             >
               <Coffee className="w-3.5 h-3.5 text-amber-500" />
@@ -377,8 +377,8 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
         </div>
       </div>
 
-      {/* Top-Right Extra-Large Visual Timer Watch - Prominently visible to kid on EVERY animation page */}
-      <div className="absolute top-2 right-2 sm:top-3 sm:right-5 md:top-4 md:right-8 z-30 pointer-events-auto">
+      {/* Dedicated Clocks Row: Big Digital Clock + Round Clock side by side (No Overlap) */}
+      <div className="relative z-20 w-full flex items-center justify-center my-0.5 sm:my-1 px-2 shrink-0">
         <TimerWatch
           progress={progress}
           elapsedMs={elapsedMs}
@@ -389,15 +389,15 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
       </div>
 
       {/* Main Central Visualization Screen */}
-      <div className="relative flex-1 w-full flex items-center justify-center p-2 sm:p-6 overflow-hidden">
+      <div className="relative flex-1 min-h-0 w-full flex flex-col items-center justify-center p-1 sm:p-3 overflow-hidden">
         {renderModeComponent()}
       </div>
 
       {/* Bottom Control Bar */}
-      <div className="relative z-20 w-full p-4 sm:p-6 flex items-center justify-center gap-4 max-w-md mx-auto">
+      <div className="relative z-20 w-full p-2.5 sm:p-4 flex items-center justify-center gap-4 max-w-md mx-auto shrink-0">
         {/* If controls locked, show a subtle lock badge */}
         {settings.lockTimerControls && (
-          <div className="absolute left-6 bottom-6 flex items-center gap-1 text-slate-400 bg-white/60 px-2.5 py-1 rounded-full text-xs font-bold">
+          <div className="absolute left-6 bottom-4 sm:bottom-6 flex items-center gap-1 text-slate-400 bg-white/60 px-2.5 py-1 rounded-full text-xs font-bold">
             <Lock className="w-3.5 h-3.5" />
             <span>Lock On</span>
           </div>
@@ -408,17 +408,17 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleResume}
-            className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-green-200 flex items-center justify-center border-4 border-white"
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-green-200 flex items-center justify-center border-4 border-white"
           >
-            <Play className="w-8 h-8 fill-current ml-1" />
+            <Play className="w-7 h-7 fill-current ml-0.5" />
           </motion.button>
         ) : (
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handlePause}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/80 hover:bg-white text-slate-600 shadow-lg border-2 border-slate-200 flex items-center justify-center"
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/80 hover:bg-white text-slate-600 shadow-lg border-2 border-slate-200 flex items-center justify-center"
           >
-            <Pause className="w-7 h-7 fill-current" />
+            <Pause className="w-6 h-6 fill-current" />
           </motion.button>
         )}
 
@@ -426,7 +426,7 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={handleStop}
-          className="w-12 h-12 rounded-full bg-white/70 hover:bg-white text-slate-400 hover:text-slate-600 shadow-md border border-slate-200 flex items-center justify-center"
+          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/70 hover:bg-white text-slate-400 hover:text-slate-600 shadow-md border border-slate-200 flex items-center justify-center"
         >
           <X className="w-6 h-6 stroke-[2.5]" />
         </motion.button>
