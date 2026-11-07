@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { TimerMode, CharacterId, HourglassFillType } from '../../types';
 import { CHARACTER_META } from '../characters/CharacterAvatar';
 import { HOURGLASS_FILL_CONFIGS } from '../timers/HourglassTimer';
-import { Play, Sparkles, Check } from 'lucide-react';
+import { Play, Sparkles, Check, Minus, Plus } from 'lucide-react';
 
 interface PresetPickerProps {
   availablePresets: number[]; // in seconds
@@ -19,16 +19,16 @@ interface PresetPickerProps {
 }
 
 export const PRESET_VISUALS: { [key: number]: { symbol: string; title: string; color: string; desc: string } } = {
-  30: { symbol: '🌱', title: 'Tiny Sprout', color: 'from-emerald-300 to-green-400', desc: 'Quick & Gentle' },
-  60: { symbol: '🌿', title: 'Little Leaf', color: 'from-green-300 to-teal-400', desc: 'Short Sitting' },
-  120: { symbol: '🌷', title: 'Sweet Tulip', color: 'from-pink-300 to-rose-400', desc: 'Just Right' },
-  180: { symbol: '🌼', title: 'Daisy Bloom', color: 'from-yellow-300 to-amber-400', desc: 'Good Sitting' },
-  300: { symbol: '🌻', title: 'Sunny Sunflower', color: 'from-amber-300 to-orange-400', desc: 'Sunny Time' },
-  420: { symbol: '🌸', title: 'Cherry Blossom', color: 'from-fuchsia-300 to-pink-400', desc: 'Calm Focus' },
-  600: { symbol: '🌺', title: 'Rainbow Bloom', color: 'from-purple-300 to-indigo-400', desc: 'Great Job' },
-  900: { symbol: '🍎', title: 'Apple Tree', color: 'from-red-300 to-pink-400', desc: 'Big Journey' },
-  1200: { symbol: '🌈', title: 'Full Rainbow', color: 'from-sky-300 to-blue-500', desc: 'Hero Sitting' },
-  1800: { symbol: '🏰', title: 'Garden Castle', color: 'from-violet-300 to-purple-500', desc: 'Master Garden' },
+  30: { symbol: '🌱', title: 'Tiny Sprout', color: 'from-emerald-300 to-green-400', desc: '30s' },
+  60: { symbol: '🌿', title: 'Little Leaf', color: 'from-green-300 to-teal-400', desc: '1m' },
+  120: { symbol: '🌷', title: 'Sweet Tulip', color: 'from-pink-300 to-rose-400', desc: '2m' },
+  180: { symbol: '🌼', title: 'Daisy Bloom', color: 'from-yellow-300 to-amber-400', desc: '3m' },
+  300: { symbol: '🌻', title: 'Sunny Sunflower', color: 'from-amber-300 to-orange-400', desc: '5m' },
+  420: { symbol: '🌸', title: 'Cherry Blossom', color: 'from-fuchsia-300 to-pink-400', desc: '7m' },
+  600: { symbol: '🌺', title: 'Rainbow Bloom', color: 'from-purple-300 to-indigo-400', desc: '10m' },
+  900: { symbol: '🍎', title: 'Apple Tree', color: 'from-red-300 to-pink-400', desc: '15m' },
+  1200: { symbol: '🌈', title: 'Full Rainbow', color: 'from-sky-300 to-blue-500', desc: '20m' },
+  1800: { symbol: '🏰', title: 'Garden Castle', color: 'from-violet-300 to-purple-500', desc: '30m' },
 };
 
 function formatMinutes(sec: number): string {
@@ -36,6 +36,14 @@ function formatMinutes(sec: number): string {
   const m = Math.floor(sec / 60);
   const rem = sec % 60;
   return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
+}
+
+function formatDurationLong(sec: number): string {
+  if (sec < 60) return `${sec} Seconds`;
+  const m = Math.floor(sec / 60);
+  const rem = sec % 60;
+  if (rem === 0) return `${m} Minute${m > 1 ? 's' : ''}`;
+  return `${m} Min ${rem}s`;
 }
 
 export const PresetPicker: React.FC<PresetPickerProps> = ({
@@ -50,9 +58,6 @@ export const PresetPicker: React.FC<PresetPickerProps> = ({
   onStart,
   className = '',
 }) => {
-  const [customMinutes, setCustomMinutes] = useState(Math.round(selectedSec / 60) || 2);
-  const [showCustom, setShowCustom] = useState(false);
-
   const characterName = CHARACTER_META.find((c) => c.id === characterId)?.name.split(' ')[0] || 'Bunny';
 
   const timerModesInfo: {
@@ -74,7 +79,7 @@ export const PresetPicker: React.FC<PresetPickerProps> = ({
   return (
     <div className={`w-full max-w-3xl mx-auto flex flex-col items-center select-none ${className}`}>
       {/* STEP 1: FIRST SELECT TIME */}
-      <div className="w-full mb-6">
+      <div className="w-full mb-6 flex flex-col items-center">
         <div className="text-center mb-3">
           <span className="px-4 py-1 rounded-full bg-amber-100 text-amber-800 font-black text-xs uppercase tracking-wider">
             Step 1: Select Sitting Time ⏱️
@@ -84,85 +89,85 @@ export const PresetPicker: React.FC<PresetPickerProps> = ({
           </h2>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 gap-3 sm:gap-4 w-full p-2">
+        {/* Simple Golden Preset Pills (Clean & Compact) */}
+        <div className="grid grid-cols-5 gap-2 sm:gap-2.5 w-full max-w-lg px-2">
           {availablePresets.map((sec) => {
-            const isSelected = selectedSec === sec && !showCustom;
-            const visual = PRESET_VISUALS[sec] || {
-              symbol: '🌸',
-              title: formatMinutes(sec),
-              color: 'from-teal-300 to-emerald-400',
-              desc: formatMinutes(sec),
-            };
+            const isSelected = selectedSec === sec;
 
             return (
               <motion.button
                 key={sec}
+                type="button"
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  setShowCustom(false);
-                  onSelectSec(sec);
-                }}
-                className={`relative rounded-3xl p-3 sm:p-4 text-center transition-all flex flex-col items-center justify-between border-4 ${
+                onClick={() => onSelectSec(sec)}
+                className={`py-2.5 sm:py-3 px-2 rounded-2xl font-black text-xs sm:text-sm md:text-base transition-all flex items-center justify-center border-2 ${
                   isSelected
-                    ? 'bg-white shadow-xl ring-4 ring-amber-400/50 border-amber-400 scale-105'
-                    : 'bg-white/80 hover:bg-white border-transparent hover:border-amber-200 shadow-md'
+                    ? 'bg-amber-400 text-amber-950 border-white ring-4 ring-amber-300/80 shadow-lg scale-105 z-10'
+                    : 'bg-[#D99B26] hover:bg-amber-500 text-amber-950 border-amber-600/30 shadow-sm opacity-95 hover:opacity-100'
                 }`}
               >
-                {/* Symbol bubble */}
-                <div
-                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr ${visual.color} flex items-center justify-center text-2xl sm:text-3xl shadow-md mb-2`}
-                >
-                  <span>{visual.symbol}</span>
-                </div>
-
-                {/* Kid-friendly title */}
-                <span className="font-extrabold text-slate-700 text-xs sm:text-sm leading-tight">
-                  {visual.title}
-                </span>
-
-                {/* Subtitle with duration badge */}
-                <span className="mt-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-bold text-xs">
-                  {formatMinutes(sec)}
-                </span>
-
-                {isSelected && (
-                  <div className="absolute -top-2 -right-2 bg-amber-500 text-white rounded-full p-1 shadow-md">
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                )}
+                <span>{formatMinutes(sec)}</span>
+                {isSelected && <Sparkles className="w-3.5 h-3.5 ml-1 fill-amber-950 text-amber-950 shrink-0" />}
               </motion.button>
             );
           })}
         </div>
 
-        {/* Custom Duration Toggle & Slider */}
-        <div className="w-full mt-2 px-3 flex flex-col items-center">
-          {!showCustom ? (
-            <button
-              onClick={() => setShowCustom(true)}
-              className="text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-700 underline decoration-dotted"
-            >
-              Choose Custom Sitting Minutes
-            </button>
-          ) : (
-            <div className="w-full max-w-sm bg-white/90 rounded-2xl p-4 shadow-sm border border-pink-100 flex flex-col items-center">
-              <span className="font-bold text-slate-700 text-sm mb-2">
-                Custom Time: {customMinutes} Minutes
+        {/* Custom Duration Slider */}
+        <div className="w-full max-w-lg mt-3 px-2">
+          <div className="p-3 sm:p-4 rounded-3xl bg-amber-50/90 border-2 border-amber-200/90 shadow-sm flex flex-col items-center">
+            {/* Header with live duration badge */}
+            <div className="w-full flex items-center justify-between mb-2 px-1">
+              <span className="text-xs font-black text-amber-900 uppercase tracking-wider">
+                Custom Slider
               </span>
+              <span className="text-sm sm:text-base font-black text-amber-950 px-3.5 py-1 rounded-full bg-amber-200 border border-amber-300 shadow-xs">
+                ⏱️ {formatDurationLong(selectedSec)}
+              </span>
+            </div>
+
+            {/* Interactive Slider with [-] and [+] Stepper Buttons */}
+            <div className="w-full flex items-center gap-2.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => onSelectSec(Math.max(30, selectedSec - 30))}
+                className="w-10 h-10 rounded-2xl bg-white hover:bg-amber-100 text-amber-950 border-2 border-amber-300 font-black text-xl flex items-center justify-center shadow-sm active:scale-95 transition-all shrink-0"
+                title="Decrease 30 seconds"
+              >
+                <Minus className="w-5 h-5 stroke-[3]" />
+              </button>
+
               <input
                 type="range"
-                min="1"
-                max="60"
-                value={customMinutes}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setCustomMinutes(val);
-                  onSelectSec(val * 60);
-                }}
-                className="w-full h-3 bg-pink-200 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                min={30}
+                max={1800}
+                step={30}
+                value={selectedSec}
+                onChange={(e) => onSelectSec(Number(e.target.value))}
+                className="flex-1 h-4 bg-amber-200 rounded-full appearance-none cursor-pointer accent-amber-500 shadow-inner"
               />
+
+              <button
+                type="button"
+                onClick={() => onSelectSec(Math.min(3600, selectedSec + 30))}
+                className="w-10 h-10 rounded-2xl bg-white hover:bg-amber-100 text-amber-950 border-2 border-amber-300 font-black text-xl flex items-center justify-center shadow-sm active:scale-95 transition-all shrink-0"
+                title="Increase 30 seconds"
+              >
+                <Plus className="w-5 h-5 stroke-[3]" />
+              </button>
             </div>
-          )}
+
+            {/* Slider Scale Indicators */}
+            <div className="w-full flex justify-between text-[11px] font-extrabold text-amber-800/80 px-1 mt-1.5">
+              <span>30s</span>
+              <span>5m</span>
+              <span>10m</span>
+              <span>15m</span>
+              <span>20m</span>
+              <span>30m</span>
+            </div>
+          </div>
         </div>
       </div>
 
