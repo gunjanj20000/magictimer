@@ -756,7 +756,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   Lock Countdown Controls
                 </span>
                 <span className="text-xs text-slate-500">
-                  Prevents accidental child taps pausing or stopping the timer
+                  Hold Pause or Stop for 3 seconds to open Grown-Up window (prevents child taps)
                 </span>
               </div>
               <input

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   TimerMode,
   ParentSettings,
@@ -194,12 +194,114 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
     return () => cancelAnimationFrame(animId);
   }, [isPaused, totalDurationMs, handleTimerComplete, settings.soundMode]);
 
+  // Hold-to-unlock state for Pause and Stop buttons (3-second press to open Grown-Up window)
+  const HOLD_DURATION_MS = 3000;
+  const [holdingAction, setHoldingAction] = useState<'pause' | 'stop' | null>(null);
+  const [holdProgress, setHoldProgress] = useState(0);
+  const [holdRemainingSec, setHoldRemainingSec] = useState(3);
+  const [tapHintMessage, setTapHintMessage] = useState<string | null>(null);
+
+  const tapHintTimerRef = useRef<number | null>(null);
+  const holdStartTimestampRef = useRef<number | null>(null);
+  const holdRafIdRef = useRef<number | null>(null);
+  const isHoldCompleteRef = useRef<boolean>(false);
+
+  // Clear timers on unmount
+  useEffect(() => {
+    return () => {
+      if (holdRafIdRef.current) cancelAnimationFrame(holdRafIdRef.current);
+      if (tapHintTimerRef.current) clearTimeout(tapHintTimerRef.current);
+    };
+  }, []);
+
+  const showTapHint = (action: 'pause' | 'stop') => {
+    if (tapHintTimerRef.current) clearTimeout(tapHintTimerRef.current);
+    setTapHintMessage(`Hold for 3s to ${action === 'pause' ? 'pause' : 'exit'} 🔒`);
+    tapHintTimerRef.current = window.setTimeout(() => {
+      setTapHintMessage(null);
+      tapHintTimerRef.current = null;
+    }, 2200);
+  };
+
+  const handlePointerDown = (action: 'pause' | 'stop', e: React.PointerEvent) => {
+    if (isCompletedRef.current) return;
+    if (!settings.lockTimerControls) return;
+
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
+
+    if (holdRafIdRef.current) {
+      cancelAnimationFrame(holdRafIdRef.current);
+      holdRafIdRef.current = null;
+    }
+
+    isHoldCompleteRef.current = false;
+    holdStartTimestampRef.current = Date.now();
+    setHoldingAction(action);
+    setHoldProgress(0);
+    setHoldRemainingSec(3);
+
+    const tickHold = () => {
+      if (!holdStartTimestampRef.current) return;
+      const elapsed = Date.now() - holdStartTimestampRef.current;
+      const progress = Math.min(100, (elapsed / HOLD_DURATION_MS) * 100);
+      const remaining = Math.max(1, Math.ceil((HOLD_DURATION_MS - elapsed) / 1000));
+
+      setHoldProgress(progress);
+      setHoldRemainingSec(remaining);
+
+      if (elapsed >= HOLD_DURATION_MS) {
+        // Complete 3-second hold!
+        isHoldCompleteRef.current = true;
+        holdStartTimestampRef.current = null;
+        holdRafIdRef.current = null;
+        setHoldingAction(null);
+        setHoldProgress(0);
+
+        try {
+          if (navigator.vibrate) navigator.vibrate(60);
+        } catch {}
+        playSoftTap(settings.soundMode);
+
+        setPendingAction(action);
+        setIsParentLockOpen(true);
+        return;
+      }
+
+      holdRafIdRef.current = requestAnimationFrame(tickHold);
+    };
+
+    holdRafIdRef.current = requestAnimationFrame(tickHold);
+  };
+
+  const handlePointerUp = (action: 'pause' | 'stop', e: React.PointerEvent) => {
+    if (!settings.lockTimerControls) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+
+    if (holdRafIdRef.current) {
+      cancelAnimationFrame(holdRafIdRef.current);
+      holdRafIdRef.current = null;
+    }
+
+    const elapsed = holdStartTimestampRef.current ? Date.now() - holdStartTimestampRef.current : 0;
+    holdStartTimestampRef.current = null;
+    setHoldingAction(null);
+    setHoldProgress(0);
+
+    if (!isHoldCompleteRef.current && elapsed < 2000) {
+      showTapHint(action);
+    }
+  };
+
   // Pause logic
-  const handlePause = () => {
+  const handlePauseClick = () => {
     if (isCompletedRef.current) return;
     if (settings.lockTimerControls) {
-      setPendingAction('pause');
-      setIsParentLockOpen(true);
+      // If locked, a quick click does NOT open the grown up window!
+      showTapHint('pause');
       return;
     }
     executePause();
@@ -223,10 +325,10 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
   };
 
   // Stop/Exit logic
-  const handleStop = () => {
+  const handleStopClick = () => {
     if (settings.lockTimerControls) {
-      setPendingAction('stop');
-      setIsParentLockOpen(true);
+      // If locked, a quick click does NOT open the grown up window!
+      showTapHint('stop');
       return;
     }
     executeStop();
@@ -399,12 +501,41 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
       </div>
 
       {/* Bottom Control Bar */}
-      <div className="relative z-20 w-full p-2.5 sm:p-4 flex items-center justify-center gap-4 max-w-md mx-auto shrink-0">
+      <div className="relative z-20 w-full p-2.5 sm:p-4 flex items-center justify-center gap-4 max-w-md mx-auto shrink-0 select-none">
+        {/* Floating Hold Countdown / Tap Hint */}
+        <AnimatePresence>
+          {(holdingAction || tapHintMessage) && (
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 4, scale: 0.95 }}
+              className="absolute -top-11 left-1/2 -translate-x-1/2 whitespace-nowrap z-30 px-3.5 py-1.5 rounded-full bg-slate-900/90 backdrop-blur-md text-white text-xs font-bold shadow-xl flex items-center gap-2 pointer-events-none border border-white/20"
+            >
+              {holdingAction ? (
+                <>
+                  <Lock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                  <span>
+                    Keep holding for {holdRemainingSec}s...
+                  </span>
+                  <span className="text-[10px] text-amber-300 font-extrabold bg-amber-500/30 px-1.5 py-0.5 rounded-full">
+                    {Math.round(holdProgress)}%
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{tapHintMessage}</span>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* If controls locked, show a subtle lock badge */}
         {settings.lockTimerControls && (
-          <div className="absolute left-6 bottom-4 sm:bottom-6 flex items-center gap-1 text-slate-400 bg-white/60 px-2.5 py-1 rounded-full text-xs font-bold">
+          <div className="absolute left-3 sm:left-6 bottom-4 sm:bottom-6 flex items-center gap-1 text-slate-400 bg-white/60 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-bold">
             <Lock className="w-3.5 h-3.5" />
-            <span>Lock On</span>
+            <span>Lock On (Hold 3s)</span>
           </div>
         )}
 
@@ -413,28 +544,111 @@ export const TimerContainer: React.FC<TimerContainerProps> = ({
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleResume}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-green-200 flex items-center justify-center border-4 border-white"
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-green-200 flex items-center justify-center border-4 border-white active:scale-95 transition-all"
+            title="Resume sitting"
           >
             <Play className="w-7 h-7 fill-current ml-0.5" />
           </motion.button>
         ) : (
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={handlePause}
-            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/80 hover:bg-white text-slate-600 shadow-lg border-2 border-slate-200 flex items-center justify-center"
-          >
-            <Pause className="w-6 h-6 fill-current" />
-          </motion.button>
+          <div className="relative inline-flex items-center justify-center">
+            {/* 3-Second Hold Circular SVG Progress Ring */}
+            {holdingAction === 'pause' && (
+              <div className="absolute -inset-1.5 sm:-inset-2 pointer-events-none z-10 animate-fade-in">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 60 60">
+                  <circle
+                    cx="30"
+                    cy="30"
+                    r="26"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3.5"
+                    className="text-amber-200/60"
+                  />
+                  <circle
+                    cx="30"
+                    cy="30"
+                    r="26"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    strokeDasharray={163.36}
+                    strokeDashoffset={163.36 * (1 - holdProgress / 100)}
+                    className="text-amber-500"
+                  />
+                </svg>
+              </div>
+            )}
+            <motion.button
+              whileTap={!settings.lockTimerControls ? { scale: 0.9 } : undefined}
+              animate={holdingAction === 'pause' ? { scale: 0.96 } : { scale: 1 }}
+              onPointerDown={(e) => handlePointerDown('pause', e)}
+              onPointerUp={(e) => handlePointerUp('pause', e)}
+              onPointerCancel={(e) => handlePointerUp('pause', e)}
+              onPointerLeave={(e) => handlePointerUp('pause', e)}
+              onContextMenu={(e) => e.preventDefault()}
+              onClick={handlePauseClick}
+              className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg border-2 flex items-center justify-center transition-all touch-none select-none ${
+                holdingAction === 'pause'
+                  ? 'bg-amber-100 border-amber-400 text-amber-700 shadow-amber-200 ring-4 ring-amber-300/40'
+                  : 'bg-white/80 hover:bg-white text-slate-600 border-slate-200'
+              }`}
+              title={settings.lockTimerControls ? 'Hold 3s to pause' : 'Pause timer'}
+            >
+              <Pause className="w-6 h-6 fill-current" />
+            </motion.button>
+          </div>
         )}
 
         {/* Exit / Stop button */}
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={handleStop}
-          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/70 hover:bg-white text-slate-400 hover:text-slate-600 shadow-md border border-slate-200 flex items-center justify-center"
-        >
-          <X className="w-6 h-6 stroke-[2.5]" />
-        </motion.button>
+        <div className="relative inline-flex items-center justify-center">
+          {/* 3-Second Hold Circular SVG Progress Ring */}
+          {holdingAction === 'stop' && (
+            <div className="absolute -inset-1.5 sm:-inset-2 pointer-events-none z-10 animate-fade-in">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 60 60">
+                <circle
+                  cx="30"
+                  cy="30"
+                  r="26"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  className="text-rose-200/60"
+                />
+                <circle
+                  cx="30"
+                  cy="30"
+                  r="26"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  strokeDasharray={163.36}
+                  strokeDashoffset={163.36 * (1 - holdProgress / 100)}
+                  className="text-rose-500"
+                />
+              </svg>
+            </div>
+          )}
+          <motion.button
+            whileTap={!settings.lockTimerControls ? { scale: 0.9 } : undefined}
+            animate={holdingAction === 'stop' ? { scale: 0.96 } : { scale: 1 }}
+            onPointerDown={(e) => handlePointerDown('stop', e)}
+            onPointerUp={(e) => handlePointerUp('stop', e)}
+            onPointerCancel={(e) => handlePointerUp('stop', e)}
+            onPointerLeave={(e) => handlePointerUp('stop', e)}
+            onContextMenu={(e) => e.preventDefault()}
+            onClick={handleStopClick}
+            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full shadow-md border flex items-center justify-center transition-all touch-none select-none ${
+              holdingAction === 'stop'
+                ? 'bg-rose-100 border-rose-400 text-rose-700 shadow-rose-200 ring-4 ring-rose-300/40'
+                : 'bg-white/70 hover:bg-white text-slate-400 hover:text-slate-600 border-slate-200'
+            }`}
+            title={settings.lockTimerControls ? 'Hold 3s to stop' : 'Stop timer'}
+          >
+            <X className="w-6 h-6 stroke-[2.5]" />
+          </motion.button>
+        </div>
       </div>
 
       {/* Visual Break Dialog */}
